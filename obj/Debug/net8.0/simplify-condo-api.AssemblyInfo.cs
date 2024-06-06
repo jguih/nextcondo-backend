@@ -10,11 +10,10 @@
 using System;
 using System.Reflection;
 
-[assembly: Microsoft.Extensions.Configuration.UserSecrets.UserSecretsIdAttribute("aspnet-simplify_condo_api-1c2e4362-a818-4b3b-86a4-8e314478a50f")]
 [assembly: System.Reflection.AssemblyCompanyAttribute("simplify-condo-api")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+33ed6078f47af4f9e6acff186813640aee761c80")]
 [assembly: System.Reflection.AssemblyProductAttribute("simplify-condo-api")]
 [assembly: System.Reflection.AssemblyTitleAttribute("simplify-condo-api")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

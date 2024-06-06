@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.002.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "simplify-condo-api", "simplify-condo-api.csproj", "{7E8E7BB7-2DB8-4AB7-A87D-21C2367C5BB5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "simplify-condo-api", "simplify-condo-api.csproj", "{D598B5D4-5C5A-4E3C-9610-1147F54517C6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,15 +11,15 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{7E8E7BB7-2DB8-4AB7-A87D-21C2367C5BB5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7E8E7BB7-2DB8-4AB7-A87D-21C2367C5BB5}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7E8E7BB7-2DB8-4AB7-A87D-21C2367C5BB5}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7E8E7BB7-2DB8-4AB7-A87D-21C2367C5BB5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D598B5D4-5C5A-4E3C-9610-1147F54517C6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D598B5D4-5C5A-4E3C-9610-1147F54517C6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D598B5D4-5C5A-4E3C-9610-1147F54517C6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D598B5D4-5C5A-4E3C-9610-1147F54517C6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {11C41878-2693-44E6-8D03-BCD9196584B1}
+		SolutionGuid = {4078E057-12BF-4658-9C6B-A4E9C2004634}
 	EndGlobalSection
 EndGlobal

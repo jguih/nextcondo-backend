@@ -40,25 +40,7 @@
           "dependencies": {
             "Microsoft.AspNetCore.Authentication.JwtBearer": {
               "target": "Package",
-              "version": "[8.0.5, )",
-              "noWarn": [
-                "NU1605"
-              ]
-            },
-            "Microsoft.AspNetCore.Authentication.OpenIdConnect": {
-              "target": "Package",
-              "version": "[8.0.5, )",
-              "noWarn": [
-                "NU1605"
-              ]
-            },
-            "Microsoft.Identity.Web": {
-              "target": "Package",
-              "version": "[2.15.2, )"
-            },
-            "Microsoft.Identity.Web.DownstreamApi": {
-              "target": "Package",
-              "version": "[2.15.2, )"
+              "version": "[8.0.6, )"
             },
             "Swashbuckle.AspNetCore": {
               "target": "Package",
