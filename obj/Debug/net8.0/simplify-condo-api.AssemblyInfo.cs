@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("simplify-condo-api")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+33ed6078f47af4f9e6acff186813640aee761c80")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+0c1bae7318e9f0ee5234d5000c47be6a0ff8f599")]
 [assembly: System.Reflection.AssemblyProductAttribute("simplify-condo-api")]
 [assembly: System.Reflection.AssemblyTitleAttribute("simplify-condo-api")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

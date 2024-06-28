@@ -6,11 +6,11 @@ namespace MyApp.Namespace
   [Authorize]
   [Route("api/[controller]")]
   [ApiController]
-  public class Test : ControllerBase
+  public class Auth : ControllerBase
   {
 
     [HttpGet]
-    public IActionResult Get()
+    public IActionResult GetClaims()
     {
       Dictionary<string, string> claimsList = new();
       foreach (var claim in HttpContext.User.Claims)
