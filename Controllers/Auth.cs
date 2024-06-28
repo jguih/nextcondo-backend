@@ -1,10 +1,12 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SimplifyCondoApi.Utils.ClaimsPrincipalExtension;
 
-namespace MyApp.Namespace
+namespace SimplifyCondoApi.Controllers
 {
   [Authorize]
-  [Route("api/[controller]")]
+  [Route("[controller]")]
   [ApiController]
   public class Auth : ControllerBase
   {
@@ -18,6 +20,21 @@ namespace MyApp.Namespace
         claimsList.Add(claim.Type, claim.Value);
       }
       return Ok(claimsList.ToList());
+    }
+
+    [HttpGet("identity")]
+    public IActionResult GetIdentity()
+    {
+      try
+      {
+        var id = User.GetIdentity();
+        return Ok(id);
+      }
+      catch (Exception exception)
+      {
+        return BadRequest(exception);
+      }
+
     }
   }
 }

@@ -1,7 +1,7 @@
 
 using Microsoft.OpenApi.Models;
 
-namespace Swagger;
+namespace SimplifyCondoApi.Swagger;
 
 public static class Swagger
 {

@@ -2,7 +2,7 @@
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
 
-namespace Auth;
+namespace SimplifyCondoApi.Auth;
 
 public static class AuthServices
 {
