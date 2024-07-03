@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
 using SimplifyCondoApi.Auth;
-using SimplifyCondoApi.Model;
+using SimplifyCondoApi.Entity;
 using SimplifyCondoApi.Swagger;
 
 namespace simplify_condo_api;
@@ -12,9 +12,10 @@ public class Program
   public static void Main(string[] args)
   {
     var builder = WebApplication.CreateBuilder(args);
+    var configuration = builder.Configuration;
 
     builder.Services.AddDbContext<SimplifyCondoApiDbContext>(opt =>
-      opt.UseInMemoryDatabase("test")
+      opt.UseNpgsql(configuration.GetConnectionString("DefaultConnection"))
     );
 
     builder.Services.AddControllers();
@@ -22,6 +23,10 @@ public class Program
     builder.AddSwagger();
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddTransient<IClaimsTransformation, AuthClaimsTransformation>();
+    builder.Services.ConfigureHttpJsonOptions(opt =>
+    {
+      opt.SerializerOptions.IncludeFields = true;
+    });
 
     var app = builder.Build();
 

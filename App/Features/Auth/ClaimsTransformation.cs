@@ -1,16 +1,17 @@
 using Microsoft.AspNetCore.Authentication;
+using SimplifyCondoApi.Entity;
 using System.Security.Claims;
 
 namespace SimplifyCondoApi.Auth;
 
 public class AuthClaimsTransformation : IClaimsTransformation
 {
-  // private readonly SimplifyCondoApiDbContext _context;
+  private readonly SimplifyCondoApiDbContext _context;
 
-  // public AuthClaimsTransformation(SimplifyCondoApiDbContext context)
-  // {
-  //   _context = context;
-  // }
+  public AuthClaimsTransformation(SimplifyCondoApiDbContext context)
+  {
+    _context = context;
+  }
 
   public Task<ClaimsPrincipal> TransformAsync(ClaimsPrincipal principal)
   {

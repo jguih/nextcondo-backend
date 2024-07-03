@@ -1,0 +1,32 @@
+services:
+
+  # api: 
+  #   build: 
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - 5000:5000
+  #   depends_on:
+  #     - db
+  #   environment:
+  #     ConnectionStrings__DefaultConnection: "Host=db;Database=project-simplify;Username=project-simplify-api;Password=project-simplify-api"
+  #   networks:
+  #     - postgres-network
+
+  db:
+    image: 'postgres:latest'
+    ports:
+      - 5432:5432
+    container_name: db
+    environment:
+      POSTGRES_USER: project-simplify-api
+      POSTGRES_PASSWORD: project-simplify-api 
+      POSTGRES_DB: project-simplify
+    volumes:
+      - ${PWD}/db/data/:/var/lib/postgresql/data/
+    networks:
+      - postgres-network
+
+networks: 
+  postgres-network:
+    driver: bridge
