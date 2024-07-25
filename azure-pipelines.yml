@@ -23,7 +23,7 @@ stages:
         inputs:
           packageType: 'sdk'
           version: '8.x'
-      - script: dotnet ef tool install --global dotnet-ef
+      - script: $(Agent.ToolsDirectory)/dotnet tool install --global dotnet-ef
       - task: DotNetCoreCLI@2
         displayName: 'Build dotnet API'
         inputs:
