@@ -1,0 +1,22 @@
+trigger:
+  branches:
+    exclude:
+      - '*'
+pr:
+  branches:
+    include:
+      - master
+
+stages:
+- stage: build
+  jobs:
+  - job: run_build
+    pool: "Home Server"
+    steps:
+    - task: UseDotNet@2
+      inputs:
+        packageType: 'sdk'
+        version: '8.x'
+    - task: DotNetCoreCLI@2
+      inputs:
+        command: 'build'
