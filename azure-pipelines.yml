@@ -22,7 +22,7 @@ stages:
       - task: UseDotNet@2
         inputs:
           packageType: 'sdk'
-          version: '8.0'
+          version: '8.x'
       - script: dotnet ef tool install --global dotnet-ef
       - task: DotNetCoreCLI@2
         displayName: 'Build dotnet API'
@@ -54,7 +54,7 @@ stages:
       - task: UseDotNet@2
         inputs:
           packageType: 'sdk'
-          version: '8.0'
+          version: '8.x'
       - download: current
         artifact: nextcondoapi
       - task: CopyFiles@2
