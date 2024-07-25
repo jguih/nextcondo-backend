@@ -14,66 +14,48 @@ variables:
   buildConfiguration: 'Release'
 
 stages:
-  - stage: build
-    jobs:
-    - job: run_build
-      pool: "Home Server"
-      steps:
-      - task: UseDotNet@2
-        inputs:
-          packageType: 'sdk'
-          version: '8.x'
-      - task: DotNetCoreCLI@2
-        inputs:
-          command: 'custom'
-          custom: ' tool install'
-          arguments: '--global dotnet-ef'
-      - task: DotNetCoreCLI@2
-        displayName: 'Build dotnet API'
-        inputs:
-          command: 'build'
-          projects: '*.csproj'
-          arguments: '-c $(buildConfiguration)'
-      - task: DotNetCoreCLI@2
-        displayName: 'Publish dotnet API'
-        inputs:
-          command: 'publish'
-          publishWebProjects: false
-          projects: '*.csproj'
-          arguments: '-c $(buildConfiguration) -o $(Build.ArtifactStagingDirectory) /p:UseAppHost=false'
-          zipAfterPublish: false
-          modifyOutputPath: false
-      - script: |
-          $(Agent.ToolsDirectory)/dotnet ef migrations bundle -o $(Build.ArtifactStagingDirectory)/bundle
-      - publish: '$(Build.ArtifactStagingDirectory)'
-        displayName: 'Publish NextCondo .Net API'
-        artifact: nextcondoapi
-
-  # - stage: buildDockerImage
-  #   dependsOn: build
+  # - stage: build
   #   jobs:
-  #   - job: run_buildDockerImage
+  #   - job: run_build
   #     pool: "Home Server"
   #     steps:
   #     - task: UseDotNet@2
   #       inputs:
   #         packageType: 'sdk'
   #         version: '8.x'
-  #     - download: current
-  #       artifact: nextcondoapi
-  #     - task: CopyFiles@2
-  #       displayName: 'Copy nextcondoapi artifact to working directory'
+  #     - task: DotNetCoreCLI@2
+  #       displayName: 'Build dotnet API'
   #       inputs:
-  #         SourceFolder: '$(Pipeline.Workspace)/nextcondoapi'
-  #         Contents: '**'
-  #         TargetFolder: './publish'
-  #     - task: Docker@2
-  #       displayName: 'Build docker image'
-  #       inputs:
-  #         containerRegistry: 'azure'
   #         command: 'build'
-  #         Dockerfile: '**/Dockerfile'
-  #         tags: 'beta-0.$(Build.BuildId)'
+  #         projects: '*.csproj'
+  #         arguments: '-c $(buildConfiguration)'
+  #     - task: DotNetCoreCLI@2
+  #       displayName: 'Publish dotnet API'
+  #       inputs:
+  #         command: 'publish'
+  #         publishWebProjects: false
+  #         projects: '*.csproj'
+  #         arguments: '-c $(buildConfiguration) -o $(Build.ArtifactStagingDirectory) /p:UseAppHost=false'
+  #         zipAfterPublish: false
+  #         modifyOutputPath: false
+  #     - script: |
+  #         $(Agent.ToolsDirectory)/dotnet ef migrations bundle -o $(Build.ArtifactStagingDirectory)/bundle
+  #     - publish: '$(Build.ArtifactStagingDirectory)'
+  #       displayName: 'Publish NextCondo .Net API'
+  #       artifact: nextcondoapi
+
+  - stage: buildDockerImage
+    jobs:
+    - job: run_buildDockerImage
+      pool: "Home Server"
+      steps:
+      - task: Docker@2
+        displayName: 'Build docker image'
+        inputs:
+          containerRegistry: 'azure'
+          command: 'build'
+          Dockerfile: '**/Dockerfile'
+          tags: 'beta-0.$(Build.BuildId)'
       # - task: Docker@2
       #   displayName: 'Publish image to docker-hub'
       #   inputs:
