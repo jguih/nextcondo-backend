@@ -34,6 +34,8 @@ stages:
           arguments: '-c $(buildConfiguration) -o $(Build.ArtifactStagingDirectory) /p:UseAppHost=false'
           zipAfterPublish: false
           modifyOutputPath: false
+      - script: |
+          dotnet ef migrations bundle -o $(Build.ArtifactStagingDirectory)/bundle
       - publish: '$(Build.ArtifactStagingDirectory)'
         displayName: 'Publish NextCondo .Net API'
         artifact: nextcondoapi
@@ -47,7 +49,7 @@ stages:
       - download: current
         artifact: nextcondoapi
       - task: CopyFiles@2
-        displayName: 'Copy nextapp/standalone to working directory'
+        displayName: 'Copy nextcondoapi artifact to working directory'
         inputs:
           SourceFolder: '$(Pipeline.Workspace)/nextcondoapi'
           Contents: '**'
