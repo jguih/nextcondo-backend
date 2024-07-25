@@ -1,0 +1,36 @@
+# ASP.NET Core (.NET Framework)
+# Build and test ASP.NET Core projects targeting the full .NET Framework.
+# Add steps that publish symbols, save build artifacts, and more:
+# https://docs.microsoft.com/azure/devops/pipelines/languages/dotnet-core
+
+trigger:
+- master
+
+pool: "Home Server"
+
+variables:
+  solution: '**/*.sln'
+  buildPlatform: 'Any CPU'
+  buildConfiguration: 'Release'
+
+stages:
+  - stage: build
+    jobs:
+    - job: run_build
+      pool: "Home Server"
+      steps:
+      - task: DotNetCoreCLI@2
+        inputs:
+          command: 'build'
+          projects: '*.csproj'
+          arguments: '-c $(buildConfiguration) -o ./app/build'
+      - task: DotNetCoreCLI@2
+        inputs:
+          command: 'publish'
+          publishWebProjects: false
+          projects: '*.csproj'
+          arguments: '-c $(buildConfiguration) -o $(Build.ArtifactStagingDirectory)/nextcondoapi /p:UseAppHost=false'
+      - publish: '$(Build.ArtifactStagingDirectory)'
+        displayName: 'Publish NextCondo .Net API'
+        artifact: nextcondoapi
+      
