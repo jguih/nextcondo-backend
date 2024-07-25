@@ -6,7 +6,7 @@ services:
       dockerfile: ./Dockerfile
       context: .
     ports:
-      - 5294:5294
+      - 8080:8080
     depends_on:
       - nextcondo-testdb
     environment:
