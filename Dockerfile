@@ -14,13 +14,13 @@ RUN dotnet tool install --global dotnet-ef
 ENV PATH="$PATH:/root/.dotnet/tools"
 WORKDIR /app
 COPY . .
-RUN dotnet publish -c Release -o ./publish /p:UseAppHost=false
-RUN dotnet ef migrations bundle
+RUN dotnet publish -c Release -o ./release /p:UseAppHost=false
+RUN dotnet ef migrations bundle -o ./release/bundle
+RUN chmod +x ./release/bundle
 
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS release
 WORKDIR /app
-COPY --from=publish app/publish ./
-USER dotnetapi
+COPY --from=publish ./app/release/ ./
 EXPOSE 8080
 EXPOSE 8081
 ENTRYPOINT ["dotnet", "simplify-condo-api.dll"]
