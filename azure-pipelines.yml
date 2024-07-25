@@ -40,7 +40,7 @@ stages:
           zipAfterPublish: false
           modifyOutputPath: false
       - script: |
-          dotnet ef migrations bundle -o $(Build.ArtifactStagingDirectory)/bundle
+          $(Agent.ToolsDirectory)/dotnet ef migrations bundle -o $(Build.ArtifactStagingDirectory)/bundle
       - publish: '$(Build.ArtifactStagingDirectory)'
         displayName: 'Publish NextCondo .Net API'
         artifact: nextcondoapi
