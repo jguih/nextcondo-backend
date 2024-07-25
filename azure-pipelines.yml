@@ -30,6 +30,8 @@ stages:
           publishWebProjects: false
           projects: '*.csproj'
           arguments: '-c $(buildConfiguration) -o $(Build.ArtifactStagingDirectory)/nextcondoapi /p:UseAppHost=false'
+          zipAfterPublish: false
+          modifyOutputPath: false
       - publish: '$(Build.ArtifactStagingDirectory)'
         displayName: 'Publish NextCondo .Net API'
         artifact: nextcondoapi
