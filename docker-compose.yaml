@@ -10,7 +10,10 @@ services:
     depends_on:
       - nextcondo-testdb
     environment:
-      ConnectionStrings__DefaultConnection: "Host=nextcondo-testdb;Database=nextcondo;Username=nextcondo;Password=nextcondo"
+      DB_HOST: nextcondo-testdb
+      DB_USER: nextcondo
+      DB_PASSWORD: nextcondo
+      DB_DATABASE: nextcondo
     networks:
       - services
     dns:

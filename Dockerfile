@@ -10,10 +10,10 @@
 #RUN dotnet build "./simplify-condo-api.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS publish
-WORKDIR /app
-COPY ./publish ./
 RUN dotnet tool install --global dotnet-ef
 ENV PATH="$PATH:/root/.dotnet/tools"
+WORKDIR /app
+COPY ./publish ./
 RUN dotnet ef migrations bundle
 
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS release
