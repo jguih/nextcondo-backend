@@ -1,11 +1,9 @@
 
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.HttpOverrides;
-using Microsoft.EntityFrameworkCore;
 using NextCondoApi.Features.Validation;
 using NextCondoApi.Auth;
 using NextCondoApi.Entity;
-using NextCondoApi.Swagger;
 
 namespace NextCondoApi;
 
@@ -16,21 +14,12 @@ public class Program
         var builder = WebApplication.CreateBuilder(args);
         var configuration = builder.Configuration;
 
-        builder.Services.AddDbContext<SimplifyCondoApiDbContext>(opt =>
-          opt.UseNpgsql(configuration.GetConnectionString("DefaultConnection"))
-        );
-
-        builder.Services.Configure<ForwardedHeadersOptions>(options =>
-        {
-            options.ForwardedHeaders =
-                ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
-        });
-
+        builder.Services.AddDbContext<SimplifyCondoApiDbContext>();
+        builder.ConfigureForwardedHeaders();
         builder.Services.AddControllers(options =>
         {
             options.Filters.Add<HttpResponseExceptionFilter>();
         });
-
         builder.AddAuth();
         builder.AddSwagger();
         builder.Services.AddEndpointsApiExplorer();

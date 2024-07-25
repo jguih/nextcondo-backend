@@ -1,0 +1,33 @@
+services:
+
+  nextcondoapi-test: 
+    container_name: nextcondoapi-test
+    build:
+      dockerfile: ./Dockerfile
+      context: .
+    ports:
+      - 5294:5294
+    depends_on:
+      - nextcondo-testdb
+    environment:
+      ConnectionStrings__DefaultConnection: "Host=nextcondo-testdb;Database=nextcondo;Username=nextcondo;Password=nextcondo"
+    networks:
+      - services
+    dns:
+      - 172.18.0.22
+
+  nextcondo-testdb:
+    image: 'postgres:latest'
+    container_name: nextcondo-testdb
+    environment:
+      POSTGRES_USER: nextcondo
+      POSTGRES_PASSWORD: nextcondo
+      POSTGRES_DB: nextcondo
+    networks:
+      - services
+    dns:
+      - 172.18.0.22
+
+networks: 
+  services:
+    external: true
