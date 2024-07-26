@@ -10,7 +10,7 @@ public static class BuilderExtension
     public static void AddAuth(this WebApplicationBuilder builder)
     {
         var JwtSecret = builder.Configuration.GetSection("JWT_SECRET").Get<string>()!;
-        var Audiences = builder.Configuration.GetSection("JWT_AUDIENCES").Get<List<string>>()!;
+        var Audiences = builder.Configuration.GetSection("JWT_AUDIENCES").Get<string>()!;
         var Issuer = builder.Configuration.GetSection("JWT_ISSUER").Get<string>()!;
 
         builder.Services.AddAuthorization();
@@ -22,7 +22,7 @@ public static class BuilderExtension
                 ValidateAudience = true,
                 ValidateIssuer = true,
                 IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(JwtSecret)),
-                ValidAudiences = Audiences,
+                ValidAudiences = Audiences.Split(","),
                 ValidIssuer = Issuer
             };
         });
