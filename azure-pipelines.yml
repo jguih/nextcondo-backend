@@ -18,7 +18,8 @@ variables:
 stages:
   - stage: build
     jobs:
-    - job: run_build
+    - job:
+      displayName: "Build dotnetapp"
       steps:
       - task: DotNetCoreCLI@2
         inputs:
@@ -27,7 +28,8 @@ stages:
   - stage: publish
     dependsOn: build
     jobs:
-    - job: run_publish
+    - job:
+      displayName: "Publish dotneapp"
       steps:
       - task: DotNetCoreCLI@2
         inputs:
@@ -68,7 +70,7 @@ stages:
             - task: CopyFiles@2
               displayName: 'Copy dotnetapp/release to working directory'
               inputs:
-                SourceFolder: '$(Pipeline.Workspace)/release'
+                SourceFolder: '$(Pipeline.Workspace)/dotnetapp/release'
                 Contents: '**'
                 TargetFolder: './release'
             - task: Docker@2
