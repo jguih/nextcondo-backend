@@ -4,7 +4,9 @@
 # https://docs.microsoft.com/azure/devops/pipelines/languages/dotnet-core
 
 trigger:
-- master
+  tags:
+    include:
+    - '*'
 
 pool: "Home Server"
 
@@ -14,26 +16,47 @@ variables:
   buildConfiguration: 'Release'
 
 stages:
-  - stage: buildDockerImage
+  - stage: build
     jobs:
-    - job: run_buildDockerImage
-      pool: "Home Server"
+    - job: run_build
       steps:
-      - task: Docker@2
-        displayName: 'Build docker image'
+      - task: DotNetCoreCLI@2
         inputs:
-          containerRegistry: 'azure'
-          repository: 'thejguih/nextcondoapi'
           command: 'build'
-          Dockerfile: '**/Dockerfile'
-          tags: 'beta-0.$(Build.BuildId)'
-      - task: Docker@2
-        displayName: 'Publish image to docker-hub'
-        inputs:
-          containerRegistry: 'azure'
-          repository: 'thejguih/nextcondoapi'
-          command: 'push'
-          tags: 'beta-0.$(Build.BuildId)'
-      - script: |
-          docker rmi thejguih/nextcondoapi:beta-0.$(Build.BuildId)
-        displayName: "Remove image from host"
+
+  - stage: buildDockerImage
+    dependsOn: build
+    condition: startsWith(variables['Build.SourceBranch'], 'refs/tags/')
+    jobs:
+    - deployment: 
+      displayName: "Deploy Docker Image"
+      environment:
+        name: "nextcondo-backend"
+      strategy:
+        runOnce:
+          deploy:
+            steps:
+            - checkout: self
+            - task: Docker@2
+              displayName: 'Build docker image'
+              inputs:
+                containerRegistry: 'azure'
+                repository: 'thejguih/nextcondoapi'
+                command: 'build'
+                Dockerfile: '**/Dockerfile'
+                tags: 'beta-0.$(Build.BuildId)'
+            - task: Docker@2
+              displayName: 'Publish image to docker-hub'
+              inputs:
+                containerRegistry: 'azure'
+                repository: 'thejguih/nextcondoapi'
+                command: 'push'
+                tags: |
+                  $(Build.SourceBranchName)
+                  latest
+            - script: |
+                docker rmi thejguih/nextcondoapi:$(Build.SourceBranchName)
+              displayName: "Remove image $(Build.SourceBranchName) from host"
+            - script: |
+                docker rmi thejguih/nextcondoapi:latest
+              displayName: "Remove image latest from host"
