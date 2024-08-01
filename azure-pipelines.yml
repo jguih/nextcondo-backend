@@ -37,6 +37,15 @@ stages:
           arguments: '-c $(buildConfiguration) -o ./release /p:UseAppHost=false'
           zipAfterPublish: false
           modifyOutputPath: false
+      - task: CopyFiles@2
+        displayName: 'Copy ./release to staging directory'
+        inputs:
+          SourceFolder: './release'
+          Contents: '**'
+          TargetFolder: '$(Build.ArtifactStagingDirectory)/backend/release'
+      - publish: '$(Build.ArtifactStagingDirectory)'
+        displayName: 'Publish dotnetapp'
+        artifact: dotnetapp
 
   - stage: buildDockerImage
     dependsOn: publish
