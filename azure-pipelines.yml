@@ -36,21 +36,17 @@ stages:
           command: 'publish'
           publishWebProjects: false
           projects: '$(solution)'
-          arguments: '-c $(buildConfiguration) -o ./release /p:UseAppHost=false'
+          arguments: '-c $(buildConfiguration) -o $(System.DefaultWorkingDirectory)/release /p:UseAppHost=false'
           zipAfterPublish: false
           modifyOutputPath: false
       - script: |
-          dotnet ef migrations bundle -o ./release/bundle
+          dotnet ef migrations bundle -o $(System.DefaultWorkingDirectory)/release/bundle
         displayName: "Create migrations bundle"
-      - task: CopyFiles@2
-        displayName: 'Copy ./release to staging directory'
+      - task: PublishPipelineArtifact@1
         inputs:
-          SourceFolder: './release'
-          Contents: '**'
-          TargetFolder: '$(Build.ArtifactStagingDirectory)/release'
-      - publish: '$(Build.ArtifactStagingDirectory)'
-        displayName: 'Publish dotnetapp'
-        artifact: dotnetapp
+          targetPath: '$(System.DefaultWorkingDirectory)/release'
+          artifact: 'dotnetapp'
+          publishLocation: 'pipeline'
 
   - stage: deploy
     dependsOn: publish
@@ -65,14 +61,11 @@ stages:
           deploy:
             steps:
             - checkout: self
-            - download: current
-              artifact: dotnetapp
-            - task: CopyFiles@2
-              displayName: 'Copy dotnetapp/release to working directory'
+            - task: DownloadPipelineArtifact@2
               inputs:
-                SourceFolder: '$(Pipeline.Workspace)/dotnetapp/release'
-                Contents: '**'
-                TargetFolder: './release'
+                buildType: 'current'
+                artifactName: 'dotnetapp'
+                targetPath: '$(System.DefaultWorkingDirectory)/release'
             - task: Docker@2
               displayName: 'Build docker image'
               inputs:
