@@ -23,9 +23,23 @@ stages:
       - task: DotNetCoreCLI@2
         inputs:
           command: 'build'
+  
+  - stage: publish
+    dependsOn: build
+    jobs:
+    - job: run_publish
+      steps:
+      - task: DotNetCoreCLI@2
+        inputs:
+          command: 'publish'
+          publishWebProjects: false
+          projects: '$(solution)'
+          arguments: '-c $(buildConfiguration) -o ./release /p:UseAppHost=false'
+          zipAfterPublish: false
+          modifyOutputPath: false
 
   - stage: buildDockerImage
-    dependsOn: build
+    dependsOn: publish
     condition: startsWith(variables['Build.SourceBranch'], 'refs/tags/')
     jobs:
     - deployment: 
