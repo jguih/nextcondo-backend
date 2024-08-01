@@ -37,12 +37,15 @@ stages:
           arguments: '-c $(buildConfiguration) -o ./release /p:UseAppHost=false'
           zipAfterPublish: false
           modifyOutputPath: false
+      - script: |
+          dotnet ef migrations bundle -o ./release/bundle
+        displayName: "Create migrations bundle"
       - task: CopyFiles@2
         displayName: 'Copy ./release to staging directory'
         inputs:
           SourceFolder: './release'
           Contents: '**'
-          TargetFolder: '$(Build.ArtifactStagingDirectory)/backend/release'
+          TargetFolder: '$(Build.ArtifactStagingDirectory)/release'
       - publish: '$(Build.ArtifactStagingDirectory)'
         displayName: 'Publish dotnetapp'
         artifact: dotnetapp
