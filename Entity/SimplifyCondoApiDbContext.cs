@@ -12,7 +12,7 @@ public class SimplifyCondoApiDbContext : DbContext
         this.Configuration = configuration;
     }
 
-    private IConfiguration Configuration {  get; set; }
+    private IConfiguration Configuration { get; set; }
     public DbSet<User> Users { get; set; }
     public DbSet<Role> Roles { get; set; }
 
@@ -20,6 +20,7 @@ public class SimplifyCondoApiDbContext : DbContext
     {
         new UserEntityTypeConfiguration().Configure(modelBuilder.Entity<User>());
         new RoleEntityTypeConfiguration().Configure(modelBuilder.Entity<Role>());
+        new CondominiumEntityTypeConfiguration().Configure(modelBuilder.Entity<Condominium>());
         base.OnModelCreating(modelBuilder);
     }
 
