@@ -17,11 +17,16 @@ namespace NextCondoApi.Controllers
         }
 
         [HttpGet]
-        public string GetStatus()
+        public IActionResult GetStatus()
         {
             if (db.Database.CanConnect())
-                return "Working";
-            throw new HttpResponseException(StatusCodes.Status500InternalServerError, "Could not stablish connection with database");
+                return Ok();
+            return Problem(
+                title: "Database connection error",
+                detail: "Cannot connect to database",
+                type: "connection",
+                statusCode: StatusCodes.Status500InternalServerError
+           );
         }
     }
 }

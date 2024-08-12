@@ -26,6 +26,8 @@ public class SimplifyCondoApiDbContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
+        if (optionsBuilder.IsConfigured) return;
+
         var HOST = Configuration.GetSection("DB_HOST").Get<string>();
         var DATABASE = Configuration.GetSection("DB_DATABASE").Get<string>();
         var USER = Configuration.GetSection("DB_USER").Get<string>();

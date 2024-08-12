@@ -14,6 +14,7 @@ public class Program
         var builder = WebApplication.CreateBuilder(args);
         var configuration = builder.Configuration;
 
+        builder.Services.AddProblemDetails();
         builder.Services.AddDbContext<SimplifyCondoApiDbContext>();
         builder.ConfigureForwardedHeaders();
         builder.Services.AddControllers(options =>

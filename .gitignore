@@ -7,3 +7,5 @@
 /UnitTests/bin/Debug/net8.0
 /UnitTests/obj
 /UnitTests/bin/Release/net8.0
+/IntegrationTests/bin/Debug/net8.0
+/IntegrationTests/obj
