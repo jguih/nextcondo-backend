@@ -10,11 +10,6 @@ trigger:
 
 pool: "Home Server"
 
-variables:
-  solution: '**/*.sln'
-  buildPlatform: 'Any CPU'
-  buildConfiguration: 'Release'
-
 stages:
   - stage: build
     jobs:
@@ -35,16 +30,16 @@ stages:
         inputs:
           command: 'publish'
           publishWebProjects: false
-          projects: '$(solution)'
-          arguments: '-c $(buildConfiguration) -o $(System.DefaultWorkingDirectory)/release /p:UseAppHost=false'
+          projects: 'App'
+          arguments: '-c Release -o $(System.DefaultWorkingDirectory)/App/release /p:UseAppHost=false'
           zipAfterPublish: false
           modifyOutputPath: false
       - script: |
-          dotnet ef migrations bundle -o $(System.DefaultWorkingDirectory)/release/bundle
+          dotnet ef migrations bundle -o $(System.DefaultWorkingDirectory)/App/release/bundle --project App
         displayName: "Create migrations bundle"
       - task: PublishPipelineArtifact@1
         inputs:
-          targetPath: '$(System.DefaultWorkingDirectory)/release'
+          targetPath: '$(System.DefaultWorkingDirectory)/App/release'
           artifact: 'dotnetapp'
           publishLocation: 'pipeline'
 
@@ -65,14 +60,15 @@ stages:
               inputs:
                 buildType: 'current'
                 artifactName: 'dotnetapp'
-                targetPath: '$(System.DefaultWorkingDirectory)/release'
+                targetPath: '$(System.DefaultWorkingDirectory)/App/release'
             - task: Docker@2
               displayName: 'Build docker image'
               inputs:
                 containerRegistry: 'azure'
                 repository: 'thejguih/nextcondoapi'
                 command: 'build'
-                Dockerfile: '**/Dockerfile'
+                Dockerfile: 'App/Dockerfile'
+                buildContext: 'App'
                 tags: |
                   $(Build.SourceBranchName)
                   latest
