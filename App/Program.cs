@@ -14,39 +14,36 @@ public class Program
         var builder = WebApplication.CreateBuilder(args);
         var configuration = builder.Configuration;
 
-        builder.Services.AddProblemDetails();
-        builder.Services.AddDbContext<SimplifyCondoApiDbContext>();
+        builder.Services.AddDbContext<NextCondoApiDbContext>();
         builder.ConfigureForwardedHeaders();
-        builder.Services.AddControllers(options =>
-        {
-            options.Filters.Add<HttpResponseExceptionFilter>();
-        });
+        builder.Services.AddControllers();
+        builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
         builder.AddAuth();
         builder.AddSwagger();
+        builder.AddRepositories();
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddTransient<IClaimsTransformation, AuthClaimsTransformation>();
         builder.Services.ConfigureHttpJsonOptions(opt =>
         {
             opt.SerializerOptions.IncludeFields = true;
         });
+        builder.Services.AddProblemDetails();
 
         var app = builder.Build();
 
         // Configure the HTTP request pipeline.
         if (app.Environment.IsDevelopment())
         {
-            app.UseExceptionHandler("/error-dev");
             app.UseForwardedHeaders();
             app.UseSwagger();
             app.UseSwaggerUI();
         } else
         {
-            app.UseExceptionHandler("/error");
             app.UseForwardedHeaders();
         }
 
         app.MapSwagger().RequireAuthorization();
-        // app.UseHttpsRedirection();
+        app.UseExceptionHandler();
         app.UseAuthentication();
         app.UseAuthorization();
         app.MapControllers();

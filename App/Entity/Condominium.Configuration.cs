@@ -19,9 +19,9 @@ public class CondominiumEntityTypeConfiguration : IEntityTypeConfiguration<Condo
             .Property(o => o.Description)
             .HasMaxLength(255);
 
-        builder.Property(o => o.Created);
+        builder.Property(o => o.CreatedAt);
 
-        builder.Property(o => o.Updated);
+        builder.Property(o => o.UpdatedAt);
 
         builder
             .HasOne(condo => condo.Owner)

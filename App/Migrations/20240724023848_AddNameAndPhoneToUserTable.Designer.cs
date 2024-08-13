@@ -11,7 +11,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace NextCondoApi.Migrations
 {
-    [DbContext(typeof(SimplifyCondoApiDbContext))]
+    [DbContext(typeof(NextCondoApiDbContext))]
     [Migration("20240724023848_AddNameAndPhoneToUserTable")]
     partial class AddNameAndPhoneToUserTable
     {

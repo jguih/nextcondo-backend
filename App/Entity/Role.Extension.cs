@@ -4,7 +4,7 @@ namespace NextCondoApi.Entity;
 
 public static class RoleExtension
 {
-    public static async Task<Role> GetDefaultRole(this SimplifyCondoApiDbContext db)
+    public static async Task<Role> GetDefaultRole(this NextCondoApiDbContext db)
     {
         var defaultRole = await db.Roles.FindAsync("Tenant");
 

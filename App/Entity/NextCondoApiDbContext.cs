@@ -4,9 +4,9 @@ using System.Text;
 
 namespace NextCondoApi.Entity;
 
-public class SimplifyCondoApiDbContext : DbContext
+public class NextCondoApiDbContext : DbContext
 {
-    public SimplifyCondoApiDbContext(DbContextOptions<SimplifyCondoApiDbContext> options, IConfiguration configuration)
+    public NextCondoApiDbContext(DbContextOptions<NextCondoApiDbContext> options, IConfiguration configuration)
         : base(options)
     {
         this.Configuration = configuration;

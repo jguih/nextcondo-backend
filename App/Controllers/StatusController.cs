@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using NextCondoApi.Entity;
 using NextCondoApi.Features.Validation;
@@ -9,9 +10,9 @@ namespace NextCondoApi.Controllers
     [ApiController]
     public class StatusController : ControllerBase
     {
-        private readonly SimplifyCondoApiDbContext db;
+        private readonly NextCondoApiDbContext db;
 
-        public StatusController(SimplifyCondoApiDbContext db)
+        public StatusController(NextCondoApiDbContext db)
         {
             this.db = db;
         }
@@ -22,11 +23,10 @@ namespace NextCondoApi.Controllers
             if (db.Database.CanConnect())
                 return Ok();
             return Problem(
-                title: "Database connection error",
+                title: "Cannot connect",
                 detail: "Cannot connect to database",
-                type: "connection",
-                statusCode: StatusCodes.Status500InternalServerError
-           );
+                statusCode: StatusCodes.Status500InternalServerError,
+                type: "");
         }
     }
 }

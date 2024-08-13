@@ -1,12 +1,11 @@
-﻿namespace NextCondoApi.Features.Validation
+﻿namespace NextCondoApi.Features.Validation;
+
+public class HttpResponseException : Exception
 {
-    public class HttpResponseException : Exception
-    {
-        public HttpResponseException(int statusCode, object? value = null) =>
-        (StatusCode, Value) = (statusCode, value);
+    public HttpResponseException(int statusCode, object? value = null) =>
+    (StatusCode, Value) = (statusCode, value);
 
-        public int StatusCode { get; }
+    public int StatusCode { get; }
 
-        public object? Value { get; }
-    }
+    public object? Value { get; }
 }

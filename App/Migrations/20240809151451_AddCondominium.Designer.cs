@@ -11,7 +11,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace NextCondoApi.Migrations
 {
-    [DbContext(typeof(SimplifyCondoApiDbContext))]
+    [DbContext(typeof(NextCondoApiDbContext))]
     [Migration("20240809151451_AddCondominium")]
     partial class AddCondominium
     {

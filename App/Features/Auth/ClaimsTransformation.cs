@@ -4,14 +4,15 @@ using NextCondoApi.Features.Validation;
 using NextCondoApi.Entity;
 using NextCondoApi.Utils.ClaimsPrincipalExtension;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Mvc;
 
 namespace NextCondoApi.Auth;
 
 public class AuthClaimsTransformation : IClaimsTransformation
 {
-    private readonly SimplifyCondoApiDbContext db;
+    private readonly NextCondoApiDbContext db;
 
-    public AuthClaimsTransformation(SimplifyCondoApiDbContext context)
+    public AuthClaimsTransformation(NextCondoApiDbContext context)
     {
         db = context;
     }

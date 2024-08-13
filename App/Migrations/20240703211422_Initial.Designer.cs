@@ -11,7 +11,7 @@ using NextCondoApi.Entity;
 
 namespace NextCondoApi.Migrations
 {
-    [DbContext(typeof(SimplifyCondoApiDbContext))]
+    [DbContext(typeof(NextCondoApiDbContext))]
     [Migration("20240703211422_Initial")]
     partial class Initial
     {

@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using NextCondoApi.Entity;
+using NextCondoApi.Services;
 using System.Text;
 
 namespace NextCondoApi;
@@ -68,5 +70,10 @@ public static class BuilderExtension
             options.ForwardedHeaders =
                 ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
         });
+    }
+
+    public static void AddRepositories(this WebApplicationBuilder builder)
+    {
+        builder.Services.AddScoped<IUsersRepository, UsersRepository>();
     }
 }
