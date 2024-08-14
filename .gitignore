@@ -9,3 +9,5 @@
 /UnitTests/bin/Release/net8.0
 /IntegrationTests/bin/Debug/net8.0
 /IntegrationTests/obj
+/IntegrationTests/TestResults
+/UnitTests/TestResults
