@@ -41,7 +41,14 @@ public class NextCondoApiDbContext : DbContext
             .Append("Password=").Append(PASS).Append(';')
             .ToString();
 
-        optionsBuilder.UseNpgsql(ConnectionString);
+        optionsBuilder.UseNpgsql(ConnectionString, (options) =>
+        {
+            options.EnableRetryOnFailure(
+                maxRetryCount: 10,
+                maxRetryDelay: TimeSpan.FromSeconds(15),
+                errorCodesToAdd: null
+            );
+        });
         base.OnConfiguring(optionsBuilder);
     }
 }

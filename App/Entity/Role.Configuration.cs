@@ -17,6 +17,19 @@ public class RoleEntityTypeConfiguration : IEntityTypeConfiguration<Role>
           .IsRequired();
 
         builder
-          .HasData(new { Name = "Tenant", CreatedAt = DateTimeOffset.UtcNow, UpdatedAt = DateTimeOffset.UtcNow }, new { Name = "Manager", CreatedAt = DateTimeOffset.UtcNow, UpdatedAt = DateTimeOffset.UtcNow });
+          .HasData(
+            new
+            {
+                Name = "Tenant",
+                CreatedAt = new DateTimeOffset(new DateTime(2024, 8, 13, 22, 0, 46, 966, DateTimeKind.Utc)),
+                UpdatedAt = new DateTimeOffset(new DateTime(2024, 8, 13, 22, 0, 46, 966, DateTimeKind.Utc))
+            },
+            new
+            {
+                Name = "Manager",
+                CreatedAt = new DateTimeOffset(new DateTime(2024, 8, 13, 22, 0, 46, 966, DateTimeKind.Utc)),
+                UpdatedAt = new DateTimeOffset(new DateTime(2024, 8, 13, 22, 0, 46, 966, DateTimeKind.Utc))
+            }
+            );
     }
 }

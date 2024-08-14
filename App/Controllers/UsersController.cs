@@ -11,18 +11,18 @@ namespace NextCondoApi.Controllers;
 [ApiController]
 public class UsersController : ControllerBase
 {
-    private readonly IUsersRepository repository;
+    private readonly IUsersRepository users;
 
-    public UsersController(IUsersRepository repository)
+    public UsersController(IUsersRepository users)
     {
-        this.repository = repository;
+        this.users = users;
     }
 
     [HttpPut]
     public async Task<IActionResult> EditAsync([FromBody] EditUserDTO newUser)
     {
         var id = User.GetIdentity();
-        var existing = await repository.GetByIdAsync(id);
+        var existing = await users.GetByIdAsync(id);
 
         if (existing == null)
         {
@@ -39,15 +39,15 @@ public class UsersController : ControllerBase
             existing.Phone = newUser.Phone;
         }
 
-        await repository.SaveAsync();
+        await users.SaveAsync();
 
         return Ok();
     }
 
-    [HttpGet]
+    [HttpGet("all")]
     public async Task<IActionResult> GetAll()
     {
-        var users = (await repository.GetAllAsync())
+        var users = (await this.users.GetAllAsync())
             .Select(user => new UserDTO()
             {
                 Id = user.Id,
@@ -62,5 +62,13 @@ public class UsersController : ControllerBase
             return Ok(users);
         }
         return NoContent();
+    }
+
+    [HttpGet("me")]
+    public async Task<IActionResult> GetMeAsync()
+    {
+        var id = HttpContext.User.GetIdentity();
+        var user = await users.GetByIdAsync(id);
+        return user != null ? Ok(user) : NoContent();
     }
 }

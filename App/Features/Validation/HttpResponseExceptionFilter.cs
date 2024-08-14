@@ -13,9 +13,9 @@ namespace NextCondoApi.Features.Validation
         {
             if (context.Exception is HttpResponseException httpResponseException)
             {
-                context.Result = new ObjectResult(httpResponseException.Value)
+                context.Result = new ObjectResult(httpResponseException.Details)
                 {
-                    StatusCode = httpResponseException.StatusCode
+                    StatusCode = httpResponseException.Details.Status ?? StatusCodes.Status500InternalServerError,
                 };
 
                 context.ExceptionHandled = true;

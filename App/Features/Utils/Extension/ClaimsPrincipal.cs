@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Mvc;
 using NextCondoApi.Features.Validation;
 using System.Security.Claims;
 
@@ -17,7 +18,13 @@ public static class ClaimsPrincipalExtension
         var id = claimsPrincipal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (id == null)
         {
-            throw new HttpResponseException(StatusCodes.Status401Unauthorized, "Could dot determine user identity");
+            throw new HttpResponseException(new ProblemDetails()
+            {
+                Title = "Unauthorized",
+                Status = StatusCodes.Status401Unauthorized,
+                Detail = "Could dot determine user identity",
+                Type = "https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401",
+            });
         }
         return Guid.Parse(id);
     }

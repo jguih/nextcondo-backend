@@ -1,27 +1,27 @@
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.IdentityModel.JsonWebTokens;
 using NextCondoApi;
 
 namespace IntegrationTests;
 
 public class StatusTests
-    : IClassFixture<TestsWebApplicationFactory<Program>>
+    : IClassFixture<WebApplicationFactory<Program>>
 {
-    private readonly TestsWebApplicationFactory<Program> _factory;
+    private readonly WebApplicationFactory<Program> _factory;
 
-    public StatusTests(TestsWebApplicationFactory<Program> factory)
+    public StatusTests(WebApplicationFactory<Program> factory)
     {
         _factory = factory;
     }
 
-    [Theory]
-    [InlineData("/Status")]
-    public async Task Get_EndpointsReturnSuccessAndCorrectContentType(string url)
+    [Fact]
+    public async Task Get_ApiStatus()
     {
         // Arrange
         var client = _factory.CreateClient();
 
         // Act
-        var response = await client.GetAsync(url);
+        var response = await client.GetAsync("/Status");
 
         // Assert
         response.EnsureSuccessStatusCode(); // Status Code 200-299

@@ -1,4 +1,5 @@
-﻿using NextCondoApi.Features.Validation;
+﻿using Microsoft.AspNetCore.Mvc;
+using NextCondoApi.Features.Validation;
 
 namespace NextCondoApi.Entity;
 
@@ -10,7 +11,13 @@ public static class RoleExtension
 
         if (defaultRole == null)
         {
-            throw new HttpResponseException(StatusCodes.Status500InternalServerError, "Could not find role 'Tenant' on database");
+            throw new HttpResponseException(new ProblemDetails()
+            {
+                Title = "No default role",
+                Detail = "Could not find role 'Tenant' on database",
+                Status = StatusCodes.Status500InternalServerError,
+                Type = "",
+            });
         }
 
         return defaultRole;

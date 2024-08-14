@@ -1,4 +1,7 @@
-﻿using Microsoft.AspNetCore.HttpOverrides;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using NextCondoApi.Entity;
@@ -15,18 +18,45 @@ public static class BuilderExtension
         var Audiences = builder.Configuration.GetSection("JWT_AUDIENCES").Get<string>()!;
         var Issuer = builder.Configuration.GetSection("JWT_ISSUER").Get<string>()!;
 
-        builder.Services.AddAuthorization();
-        builder.Services.AddAuthentication().AddJwtBearer(o =>
-        {
-            o.TokenValidationParameters = new()
+        builder.Services.AddAuthentication()
+            .AddJwtBearer("supabase", o =>
+                {
+                    o.TokenValidationParameters = new()
+                    {
+                        ValidateIssuerSigningKey = true,
+                        ValidateAudience = true,
+                        ValidateIssuer = true,
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(JwtSecret)),
+                        ValidAudiences = Audiences.Split(","),
+                        ValidIssuer = Issuer
+                    };
+                })
+            .AddCookie("local", options =>
             {
-                ValidateIssuerSigningKey = true,
-                ValidateAudience = true,
-                ValidateIssuer = true,
-                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(JwtSecret)),
-                ValidAudiences = Audiences.Split(","),
-                ValidIssuer = Issuer
-            };
+                options.LoginPath = string.Empty;
+                options.LogoutPath = string.Empty;
+                options.Events.OnRedirectToLogin = context =>
+                {
+                    context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                    context.Response.WriteAsJsonAsync(new ProblemDetails()
+                    {
+                        Title = "Unauthorized",
+                        Status = StatusCodes.Status401Unauthorized,
+                        Detail = "Not authorized to access requested resource.",
+                        Type = "https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401"
+                    });
+                    return Task.CompletedTask;
+                };
+            });
+
+        builder.Services.AddAuthorization(options =>
+        {
+            var defaultAuthorizationPolicyBuilder = new AuthorizationPolicyBuilder(
+                    "supabase",
+                    "local"
+                );
+            defaultAuthorizationPolicyBuilder = defaultAuthorizationPolicyBuilder.RequireAuthenticatedUser();
+            options.DefaultPolicy = defaultAuthorizationPolicyBuilder.Build();
         });
     }
 
@@ -74,6 +104,11 @@ public static class BuilderExtension
 
     public static void AddRepositories(this WebApplicationBuilder builder)
     {
+        builder.Services.AddHttpContextAccessor();
+        builder.Services.AddSingleton<IPasswordHasher<User>, PasswordHasher<User>>();
+        builder.Services.AddDataProtection();
         builder.Services.AddScoped<IUsersRepository, UsersRepository>();
+        builder.Services.AddScoped<IRolesRepository, RolesRepository>();
+        builder.Services.AddScoped<IAuthService, AuthService>();
     }
 }

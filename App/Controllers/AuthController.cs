@@ -1,30 +1,73 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using NextCondoApi.Utils.ClaimsPrincipalExtension;
+using NextCondoApi.Services;
 
 namespace NextCondoApi.Controllers;
 
-[Authorize]
 [Route("[controller]")]
 [ApiController]
 public class AuthController : ControllerBase
 {
+    private readonly IAuthService auth;
 
-  [HttpGet]
-  public IActionResult GetClaims()
-  {
-    Dictionary<string, string> claimsList = new();
-    foreach (var claim in HttpContext.User.Claims)
+    public AuthController(IAuthService auth)
     {
-      claimsList.Add(claim.Type, claim.Value);
+        this.auth = auth;
     }
-    return Ok(claimsList.ToList());
-  }
 
-  [HttpGet("identity")]
-  public IActionResult GetIdentity()
-  {
-    var id = User.GetIdentity();
-    return Ok(id);
-  }
+    [Authorize]
+    [HttpGet("claims")]
+    public IActionResult GetClaims()
+    {
+        Dictionary<string, string> claimsList = new();
+        foreach (var claim in HttpContext.User.Claims)
+        {
+            claimsList.Add(claim.Type, claim.Value);
+        }
+        return Ok(claimsList.ToList());
+    }
+
+    [HttpPost("login")]
+    public async Task<IActionResult> LoginAsync([FromBody] LoginCredentialsDTO credentials)
+    {
+        var result = await auth.LoginAsync(credentials.Email, credentials.Password, "local");
+        if (result == false)
+        {
+            return Problem(
+                    title: "Invalid credentials",
+                    detail: "Invalid email or password",
+                    statusCode: StatusCodes.Status401Unauthorized,
+                    type: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401"
+                );
+        }
+        return Ok();
+    }
+
+    [HttpPost("register")]
+    public async Task<IActionResult> RegisterAsync([FromBody] RegisterUserDTO newUser)
+    {
+        var result = await auth.RegisterAsync(
+            fullName: newUser.FullName,
+            email: newUser.Email,
+            password: newUser.Password,
+            phone: newUser.Phone,
+            schema: "local");
+        if (result == true)
+        {
+            return Ok();
+        }
+        return Problem(
+                title: "Bad input",
+                detail: "Unable to register user with provided details",
+                statusCode: StatusCodes.Status400BadRequest,
+                type: "bad request"
+            );
+    }
+
+    [Authorize]
+    [HttpGet("signout")]
+    public async Task SignOutAsync()
+    {
+        await auth.SignOutAsync("local");
+    }
 }
