@@ -4,8 +4,12 @@ services:
     build:
       dockerfile: ./Dockerfile.tests
       context: .
+    tty: true
+    command: bash -c "dotnet ef database update --project App && dotnet test -l trx"
     depends_on:
-      - nextcondo-testdb
+      - testdb
+    volumes:
+      - ./:/src
     environment:
       DB_HOST: testdb
       DB_USER: nextcondo

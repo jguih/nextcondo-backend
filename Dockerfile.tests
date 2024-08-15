@@ -1,7 +1,4 @@
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS tools
+FROM mcr.microsoft.com/dotnet/sdk:8.0
 RUN dotnet tool install --global dotnet-ef
 ENV PATH="$PATH:/root/.dotnet/tools"
-
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS testrun
 WORKDIR /src
-COPY . .
