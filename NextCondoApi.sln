@@ -11,9 +11,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IntegrationTests", "Integra
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Itens de Solução", "Itens de Solução", "{F19890AC-EF9C-46AC-8D82-D4AA6BF6601C}"
 	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
 		.gitignore = .gitignore
 		azure-pipelines.yml = azure-pipelines.yml
+		database-update-tests.ps1 = database-update-tests.ps1
 		docker-compose-tests.yaml = docker-compose-tests.yaml
+		Dockerfile.tests = Dockerfile.tests
+		run-tests.bash = run-tests.bash
 	EndProjectSection
 EndProject
 Global

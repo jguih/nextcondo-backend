@@ -13,3 +13,5 @@
 /UnitTests/TestResults
 appsettings.json
 appsettings.*.json
+/.editorconfig
+/database.ps1

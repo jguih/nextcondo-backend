@@ -1,7 +1,8 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Configuration;
 using NextCondoApi.Entity;
-using System.Collections.Generic;
+using Npgsql;
+using Respawn;
 
 namespace IntegrationTests.Utils;
 
@@ -27,5 +28,26 @@ public static class DbUtils
     {
         db.Users.RemoveRange(db.Users);
         await db.SaveChangesAsync();
+    }
+
+    public static async Task CleanUpAsync(IConfiguration configuration)
+    {
+        var connectionString = NextCondoApiDbContext.GetConnectionString(configuration);
+
+        using (var conn = new NpgsqlConnection(connectionString))
+        {
+            await conn.OpenAsync();
+            var respawner = await Respawner
+                .CreateAsync(
+                    conn,
+                    new RespawnerOptions
+                    {
+                        SchemasToInclude = ["public"],
+                        TablesToIgnore = ["Roles", "__EFMigrationsHistory"],
+                        DbAdapter = DbAdapter.Postgres
+                    }
+                );
+            await respawner.ResetAsync(conn);
+        }
     }
 }

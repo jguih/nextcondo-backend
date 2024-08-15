@@ -1,6 +1,7 @@
 
 using IntegrationTests.Utils;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using NextCondoApi;
 using NextCondoApi.Entity;
@@ -40,14 +41,14 @@ public class AuthTests
         var response = await client.PostAsync("/Auth/login", credentials);
 
         // Assert
-        response.EnsureSuccessStatusCode(); // Status Code 200-299
+        response.EnsureSuccessStatusCode();
 
         // Clean Resources
         using (var scope = _factory.Services.CreateScope())
         {
             var provider = scope.ServiceProvider;
-            var db = provider.GetRequiredService<NextCondoApiDbContext>();
-            await DbUtils.RemoveUsersAsync(db);
+            var configuration = provider.GetRequiredService<IConfiguration>();
+            await DbUtils.CleanUpAsync(configuration);
         };
     }
 
@@ -76,8 +77,8 @@ public class AuthTests
         using (var scope = _factory.Services.CreateScope())
         {
             var provider = scope.ServiceProvider;
-            var db = provider.GetRequiredService<NextCondoApiDbContext>();
-            await DbUtils.RemoveUsersAsync(db);
+            var configuration = provider.GetRequiredService<IConfiguration>();
+            await DbUtils.CleanUpAsync(configuration);
         };
     }
 }

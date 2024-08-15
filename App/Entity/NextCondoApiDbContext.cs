@@ -30,7 +30,7 @@ public class NextCondoApiDbContext : DbContext
     {
         if (optionsBuilder.IsConfigured) return;
 
-        var ConnectionString = GetConnectionString();
+        var ConnectionString = GetConnectionString(Configuration);
 
         optionsBuilder.UseNpgsql(ConnectionString, (options) =>
         {
@@ -43,12 +43,12 @@ public class NextCondoApiDbContext : DbContext
         base.OnConfiguring(optionsBuilder);
     }
 
-    private string GetConnectionString()
+    public static string GetConnectionString(IConfiguration configuration)
     {
-        var HOST = Configuration.GetSection("DB_HOST").Get<string>();
-        var DATABASE = Configuration.GetSection("DB_DATABASE").Get<string>();
-        var USER = Configuration.GetSection("DB_USER").Get<string>();
-        var PASS = Configuration.GetSection("DB_PASSWORD").Get<string>();
+        var HOST = configuration.GetSection("DB_HOST").Get<string>();
+        var DATABASE = configuration.GetSection("DB_DATABASE").Get<string>();
+        var USER = configuration.GetSection("DB_USER").Get<string>();
+        var PASS = configuration.GetSection("DB_PASSWORD").Get<string>();
         var ConnectionStringBuilder = new StringBuilder();
 
         var ConnectionString = ConnectionStringBuilder
