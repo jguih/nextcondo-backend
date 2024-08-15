@@ -1,15 +1,14 @@
 using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.IdentityModel.JsonWebTokens;
 using NextCondoApi;
 
 namespace IntegrationTests;
 
 public class StatusTests
-    : IClassFixture<WebApplicationFactory<Program>>
+    : IClassFixture<TestsWebApplicationFactory<Program>>
 {
-    private readonly WebApplicationFactory<Program> _factory;
+    private readonly TestsWebApplicationFactory<Program> _factory;
 
-    public StatusTests(WebApplicationFactory<Program> factory)
+    public StatusTests(TestsWebApplicationFactory<Program> factory)
     {
         _factory = factory;
     }

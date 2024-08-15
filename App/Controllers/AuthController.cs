@@ -28,7 +28,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("login")]
-    public async Task<IActionResult> LoginAsync([FromBody] LoginCredentialsDTO credentials)
+    public async Task<IActionResult> LoginAsync([FromForm] LoginCredentialsDTO credentials)
     {
         var result = await auth.LoginAsync(credentials.Email, credentials.Password, "local");
         if (result == false)
@@ -44,7 +44,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("register")]
-    public async Task<IActionResult> RegisterAsync([FromBody] RegisterUserDTO newUser)
+    public async Task<IActionResult> RegisterAsync([FromForm] RegisterUserDTO newUser)
     {
         var result = await auth.RegisterAsync(
             fullName: newUser.FullName,

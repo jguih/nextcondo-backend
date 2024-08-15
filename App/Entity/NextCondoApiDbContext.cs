@@ -6,13 +6,15 @@ namespace NextCondoApi.Entity;
 
 public class NextCondoApiDbContext : DbContext
 {
-    public NextCondoApiDbContext(DbContextOptions<NextCondoApiDbContext> options, IConfiguration configuration)
+    public NextCondoApiDbContext(
+        DbContextOptions<NextCondoApiDbContext> options, 
+        IConfiguration configuration)
         : base(options)
     {
-        this.Configuration = configuration;
+        Configuration = configuration;
     }
 
-    private IConfiguration Configuration { get; set; }
+    protected IConfiguration Configuration { get; set; }
     public DbSet<User> Users { get; set; }
     public DbSet<Role> Roles { get; set; }
 
@@ -28,6 +30,21 @@ public class NextCondoApiDbContext : DbContext
     {
         if (optionsBuilder.IsConfigured) return;
 
+        var ConnectionString = GetConnectionString();
+
+        optionsBuilder.UseNpgsql(ConnectionString, (options) =>
+        {
+            options.EnableRetryOnFailure(
+                maxRetryCount: 10,
+                maxRetryDelay: TimeSpan.FromSeconds(15),
+                errorCodesToAdd: null
+            );
+        });
+        base.OnConfiguring(optionsBuilder);
+    }
+
+    private string GetConnectionString()
+    {
         var HOST = Configuration.GetSection("DB_HOST").Get<string>();
         var DATABASE = Configuration.GetSection("DB_DATABASE").Get<string>();
         var USER = Configuration.GetSection("DB_USER").Get<string>();
@@ -41,14 +58,6 @@ public class NextCondoApiDbContext : DbContext
             .Append("Password=").Append(PASS).Append(';')
             .ToString();
 
-        optionsBuilder.UseNpgsql(ConnectionString, (options) =>
-        {
-            options.EnableRetryOnFailure(
-                maxRetryCount: 10,
-                maxRetryDelay: TimeSpan.FromSeconds(15),
-                errorCodesToAdd: null
-            );
-        });
-        base.OnConfiguring(optionsBuilder);
+        return ConnectionString;
     }
 }

@@ -51,7 +51,7 @@ namespace NextCondoApi.Migrations
                     b.HasIndex("OwnerId")
                         .IsUnique();
 
-                    b.ToTable("Condominium");
+                    b.ToTable("Condominium", (string)null);
                 });
 
             modelBuilder.Entity("NextCondoApi.Entity.Role", b =>
@@ -67,7 +67,7 @@ namespace NextCondoApi.Migrations
 
                     b.HasKey("Name");
 
-                    b.ToTable("Roles");
+                    b.ToTable("Roles", (string)null);
 
                     b.HasData(
                         new
@@ -121,7 +121,7 @@ namespace NextCondoApi.Migrations
 
                     b.HasIndex("RoleId");
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
                 });
 
             modelBuilder.Entity("NextCondoApi.Entity.Condominium", b =>

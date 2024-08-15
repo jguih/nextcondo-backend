@@ -1,0 +1,21 @@
+services:
+  testapi: 
+    container_name: testapi
+    build:
+      dockerfile: ./Dockerfile.tests
+      context: .
+    depends_on:
+      - nextcondo-testdb
+    environment:
+      DB_HOST: testdb
+      DB_USER: nextcondo
+      DB_PASSWORD: nextcondo
+      DB_DATABASE: nextcondo-test
+
+  testdb:
+    image: 'postgres:latest'
+    container_name: testdb
+    environment:
+      POSTGRES_USER: nextcondo
+      POSTGRES_PASSWORD: nextcondo
+      POSTGRES_DB: nextcondo-test

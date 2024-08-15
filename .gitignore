@@ -11,3 +11,5 @@
 /IntegrationTests/obj
 /IntegrationTests/TestResults
 /UnitTests/TestResults
+appsettings.json
+appsettings.*.json

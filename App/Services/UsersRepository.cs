@@ -11,14 +11,11 @@ public interface IUsersRepository : IGenericRepository<User>
 
 public class UsersRepository : GenericRepository<User>, IUsersRepository
 {
-    private readonly IPasswordHasher<User> hasher;
     public UsersRepository(
-        NextCondoApiDbContext context, 
-        ILogger<UsersRepository> logger,
-        IPasswordHasher<User> hasher) 
+        NextCondoApiDbContext context,
+        ILogger<UsersRepository> logger)
         : base(context, logger)
     {
-        this.hasher = hasher;
     }
 
     public async Task<User> GetByEmailAsync(string email)
