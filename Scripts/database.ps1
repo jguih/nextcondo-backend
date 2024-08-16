@@ -8,6 +8,8 @@ param(
   [switch]$Migrate
 )
 
+$scriptPath = $MyInvocation.MyCommand.Path
+$scriptDirectory = Split-Path $scriptPath -Parent
 $session = New-PSSession -HostName home.arpa -UserName jose-guilherme
 
 function MigrateDevDb {
@@ -17,7 +19,7 @@ function MigrateDevDb {
 }
 
 function MigrateTestDb {
-  $TestsEnvProps = Get-Content -Path ".\App\appsettings.Tests.json" -Raw | ConvertFrom-Json
+  $TestsEnvProps = Get-Content -Path "${scriptDirectory}\..\App\appsettings.Tests.json" -Raw | ConvertFrom-Json
   $DbHost = $TestsEnvProps.DB_HOST
   $DbUsername = $TestsEnvProps.DB_USER
   $DbPassword = $TestsEnvProps.DB_PASSWORD
