@@ -23,3 +23,9 @@ services:
       POSTGRES_USER: nextcondo
       POSTGRES_PASSWORD: nextcondo
       POSTGRES_DB: nextcondo-test
+    volumes:
+      - nextcondo-test-temp:/var/lib/postgresql/data/
+
+volumes:
+  nextcondo-test-temp:
+    external: true
