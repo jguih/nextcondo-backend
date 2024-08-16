@@ -14,10 +14,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Itens de Solução", "Itens
 		.editorconfig = .editorconfig
 		.gitignore = .gitignore
 		azure-pipelines.yml = azure-pipelines.yml
-		database-update-tests.ps1 = database-update-tests.ps1
 		docker-compose-tests.yaml = docker-compose-tests.yaml
 		Dockerfile.tests = Dockerfile.tests
-		run-tests.bash = run-tests.bash
 	EndProjectSection
 EndProject
 Global

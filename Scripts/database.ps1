@@ -10,7 +10,12 @@ param(
 
 $scriptPath = $MyInvocation.MyCommand.Path
 $scriptDirectory = Split-Path $scriptPath -Parent
+$rootDir = "$scriptDirectory\.."
+
 $session = New-PSSession -HostName home.arpa -UserName jose-guilherme
+$testsAppSettingsJsonPath = "${rootDir}\App\appsettings.Tests.json"
+$devDockerComposePath = "${rootDir}\docker-compose-dev.yaml"
+$devDockerComposeRemotePath = "/tmp/docker-compose-dev.yaml"
 
 function MigrateDevDb {
   Invoke-Command -ScriptBlock { 
@@ -19,7 +24,7 @@ function MigrateDevDb {
 }
 
 function MigrateTestDb {
-  $TestsEnvProps = Get-Content -Path "${scriptDirectory}\..\App\appsettings.Tests.json" -Raw | ConvertFrom-Json
+  $TestsEnvProps = Get-Content -Path $testsAppSettingsJsonPath -Raw | ConvertFrom-Json
   $DbHost = $TestsEnvProps.DB_HOST
   $DbUsername = $TestsEnvProps.DB_USER
   $DbPassword = $TestsEnvProps.DB_PASSWORD
@@ -34,18 +39,32 @@ function MigrateTestDb {
 }
 
 if ($Up) {
+  Copy-Item -Path $devDockerComposePath -Destination $devDockerComposeRemotePath -ToSession $session
   Invoke-Command `
     -Session $session `
     -ScriptBlock {
-    Set-Location ~/repo/services/nextcondo; docker compose -f docker-compose-dev.yaml up -d
+    Set-Location /tmp; docker compose -f docker-compose-dev.yaml up -d
   }
+  Invoke-Command `
+    -Session $session `
+    -ScriptBlock { param($path)
+    Remove-Item -Path $path
+  } `
+    -ArgumentList $devDockerComposeRemotePath
 }
 elseif ($Down) {
+  Copy-Item -Path $devDockerComposePath -Destination $devDockerComposeRemotePath -ToSession $session
   Invoke-Command `
     -Session $session `
     -ScriptBlock {
-    Set-Location ~/repo/services/nextcondo; docker compose -f docker-compose-dev.yaml down
+    Set-Location /tmp; docker compose -f docker-compose-dev.yaml down
   }
+  Invoke-Command `
+    -Session $session `
+    -ScriptBlock { param($path)
+    Remove-Item -Path $path
+  } `
+    -ArgumentList $devDockerComposeRemotePath
 }
 
 if ($Migrate -and !$Down) {
