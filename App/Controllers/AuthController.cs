@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using NextCondoApi.Services;
+using NextCondoApi.Services.Auth;
 
 namespace NextCondoApi.Controllers;
 
@@ -40,34 +40,37 @@ public class AuthController : ControllerBase
                     type: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401"
                 );
         }
-        return Ok();
+        return Ok(new { Status = "Ok" });
     }
 
     [HttpPost("register")]
     public async Task<IActionResult> RegisterAsync([FromForm] RegisterUserDTO newUser)
     {
-        var result = await auth.RegisterAsync(
-            fullName: newUser.FullName,
-            email: newUser.Email,
-            password: newUser.Password,
-            phone: newUser.Phone,
-            schema: "local");
-        if (result == true)
-        {
-            return Ok();
-        }
-        return Problem(
-                title: "Bad input",
-                detail: "Unable to register user with provided details",
-                statusCode: StatusCodes.Status400BadRequest,
-                type: "bad request"
+        var result = await auth
+            .RegisterAsync(
+                fullName: newUser.FullName,
+                email: newUser.Email,
+                password: newUser.Password,
+                phone: newUser.Phone,
+                scheme: "local"
             );
+        if (result == false)
+        {
+            return Problem(
+                        title: "Bad input",
+                        detail: "Unable to register user with provided details",
+                        statusCode: StatusCodes.Status400BadRequest,
+                        type: "bad request"
+                    );
+        }
+        return Ok(new { Status = "Ok" });
     }
 
     [Authorize]
-    [HttpGet("signout")]
-    public async Task SignOutAsync()
+    [HttpGet("logout")]
+    public async Task<IActionResult> SignOutAsync()
     {
-        await auth.SignOutAsync("local");
+        await auth.LogoutAsync("local");
+        return Ok(new { Status = "Ok" });
     }
 }

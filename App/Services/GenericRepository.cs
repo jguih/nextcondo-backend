@@ -35,7 +35,8 @@ public class GenericRepository<TEntity> : IGenericRepository<TEntity> where TEnt
 
     public virtual async Task<List<TEntity>> GetAllAsync()
     {
-        return await entitiesDb.ToListAsync();
+        var entities = await entitiesDb.ToListAsync();
+        return entities ?? [];
     }
 
     public virtual async Task<TEntity?> GetByIdAsync(object id)

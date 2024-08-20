@@ -19,14 +19,19 @@ public class UsersController : ControllerBase
     }
 
     [HttpPut]
-    public async Task<IActionResult> EditAsync([FromBody] EditUserDTO newUser)
+    public async Task<IResult> EditAsync([FromBody] EditUserDTO newUser)
     {
         var id = User.GetIdentity();
         var existing = await users.GetByIdAsync(id);
 
         if (existing == null)
         {
-            return BadRequest();
+            return TypedResults.Problem(
+                        title: "User doesn't exist",
+                        detail: $"Could not find user with id {id}",
+                        type: "",
+                        statusCode: StatusCodes.Status400BadRequest
+                    );
         }
 
         if (newUser.FullName != null)
@@ -41,11 +46,11 @@ public class UsersController : ControllerBase
 
         await users.SaveAsync();
 
-        return Ok();
+        return TypedResults.Extensions.NoContent();
     }
 
     [HttpGet("all")]
-    public async Task<IActionResult> GetAll()
+    public async Task<IResult> GetAll()
     {
         var users = (await this.users.GetAllAsync())
             .Select(user => new UserDTO()
@@ -59,16 +64,29 @@ public class UsersController : ControllerBase
             });
         if (users.Any())
         {
-            return Ok(users);
+            return TypedResults.Ok(users);
         }
-        return NoContent();
+        return TypedResults.Extensions.NoContent();
     }
 
     [HttpGet("me")]
-    public async Task<IActionResult> GetMeAsync()
+    public async Task<IResult> GetMeAsync()
     {
         var id = HttpContext.User.GetIdentity();
         var user = await users.GetByIdAsync(id);
-        return user != null ? Ok(user) : NoContent();
+        if (user == null)
+        {
+            return TypedResults.Extensions.NoContent();
+        }
+        var userDto = new UserDTO()
+        {
+            Email = user.Email,
+            Id = user.Id,
+            Role = new UserDTO.UserRole()
+            {
+                Name = user.Role!.Name,
+            },
+        };
+        return TypedResults.Ok(userDto);
     }
 }

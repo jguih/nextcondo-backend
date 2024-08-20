@@ -1,8 +1,5 @@
 
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.HttpOverrides;
 using NextCondoApi.Features.Validation;
-using NextCondoApi.Auth;
 using NextCondoApi.Entity;
 
 namespace NextCondoApi;
@@ -22,7 +19,6 @@ public class Program
         builder.AddSwagger();
         builder.AddRepositories();
         builder.Services.AddEndpointsApiExplorer();
-        builder.Services.AddTransient<IClaimsTransformation, AuthClaimsTransformation>();
         builder.Services.ConfigureHttpJsonOptions(opt =>
         {
             opt.SerializerOptions.IncludeFields = true;
@@ -37,7 +33,8 @@ public class Program
             app.UseForwardedHeaders();
             app.UseSwagger();
             app.UseSwaggerUI();
-        } else
+        }
+        else
         {
             app.UseForwardedHeaders();
         }

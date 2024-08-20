@@ -1,13 +1,12 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using NextCondoApi.Entity;
 using NextCondoApi.Features.Validation;
-using static System.Net.WebRequestMethods;
 
 namespace NextCondoApi.Services;
 
 public interface IRolesRepository : IGenericRepository<Role>
 {
-    public Task<Role> GetDefault();
+    public Task<Role> GetDefaultAsync();
 };
 
 public class RolesRepository : GenericRepository<Role>, IRolesRepository
@@ -19,7 +18,7 @@ public class RolesRepository : GenericRepository<Role>, IRolesRepository
     {
     }
 
-    public async Task<Role> GetDefault()
+    public async Task<Role> GetDefaultAsync()
     {
         var defaultRole = await GetByIdAsync("Tenant");
         

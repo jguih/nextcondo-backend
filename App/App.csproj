@@ -20,6 +20,7 @@
 
 	<ItemGroup>
 		<InternalsVisibleTo Include="IntegrationTests" />
+		<InternalsVisibleTo Include="UnitTests" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -31,6 +32,10 @@
 		<PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.19.6" />
 		<PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.4" />
 		<PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="Features\Auth\" />
 	</ItemGroup>
 
 </Project>

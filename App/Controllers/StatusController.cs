@@ -23,7 +23,7 @@ namespace NextCondoApi.Controllers
             if (db.Database.CanConnect())
                 return Ok();
             return Problem(
-                title: "Cannot connect",
+                title: "Connection error",
                 detail: "Cannot connect to database",
                 statusCode: StatusCodes.Status500InternalServerError,
                 type: "");
