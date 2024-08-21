@@ -1,7 +1,7 @@
 #!bin/bash
 
 VolumeName="nextcondo-test-temp"
-DockerComposeFile=${BASH_SOURCE[0]}/../../docker-compose-tests.yaml
+DockerComposeFile=${BASH_SOURCE[0]}/../../../docker-compose-tests.yaml
 
 docker volume create $VolumeName
 
