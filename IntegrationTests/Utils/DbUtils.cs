@@ -24,12 +24,6 @@ public static class DbUtils
         await db.SaveChangesAsync();
     }
 
-    public static async Task RemoveUsersAsync(NextCondoApiDbContext db)
-    {
-        db.Users.RemoveRange(db.Users);
-        await db.SaveChangesAsync();
-    }
-
     public static async Task CleanUpAsync(IConfiguration configuration)
     {
         var connectionString = NextCondoApiDbContext.GetConnectionString(configuration);

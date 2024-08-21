@@ -5,6 +5,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using NextCondoApi;
 using NextCondoApi.Entity;
+using Xunit.Sdk;
 
 namespace IntegrationTests;
 
@@ -43,7 +44,7 @@ public class AuthTests
         // Assert
         response.EnsureSuccessStatusCode();
 
-        // Clean Resources
+        // Clear Resources
         using (var scope = _factory.Services.CreateScope())
         {
             var provider = scope.ServiceProvider;
@@ -73,7 +74,7 @@ public class AuthTests
         // Assert
         response.EnsureSuccessStatusCode();
 
-        // Clean Resources
+        // Clear Resources
         using (var scope = _factory.Services.CreateScope())
         {
             var provider = scope.ServiceProvider;

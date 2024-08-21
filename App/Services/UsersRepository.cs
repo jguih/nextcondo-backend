@@ -21,9 +21,12 @@ public class UsersRepository : GenericRepository<User>, IUsersRepository
         var users = await GetAllAsync();
         if (users.Count != 0)
         {
-            return users
-                .Where((user) => user.Email == email)
-                .First();
+            var byEmail = users.Where((user) => user.Email == email);
+            if (!byEmail.Any())
+            {
+                return null;
+            }
+            return byEmail.First();
         }
         return null;
     }
