@@ -23,6 +23,7 @@ public class NextCondoApiDbContext : DbContext
         new UserEntityTypeConfiguration().Configure(modelBuilder.Entity<User>());
         new RoleEntityTypeConfiguration().Configure(modelBuilder.Entity<Role>());
         new CondominiumEntityTypeConfiguration().Configure(modelBuilder.Entity<Condominium>());
+        new CondominiumUserTypeConfiguration().Configure(modelBuilder.Entity<CondominiumUser>());
         base.OnModelCreating(modelBuilder);
     }
 
@@ -59,5 +60,30 @@ public class NextCondoApiDbContext : DbContext
             .ToString();
 
         return ConnectionString;
+    }
+
+    public override Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
+    {
+        AddTimestamps();
+        return base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
+    }
+
+    private void AddTimestamps()
+    {
+        var entities = ChangeTracker
+            .Entries()
+            .Where(e => e.Entity is BaseEntity && (e.State == EntityState.Added || e.State == EntityState.Modified))
+            .ToList();
+
+        foreach (var entity in entities)
+        {
+            var now = DateTimeOffset.UtcNow;
+
+            if (entity.State == EntityState.Added)
+            {
+                ((BaseEntity)entity.Entity).CreatedAt = now;
+            }
+            ((BaseEntity)entity.Entity).UpdatedAt = now;
+        }
     }
 }

@@ -29,16 +29,3 @@ public class AuthServiceHelper : IAuthServiceHelper
         await httpContext.SignOutAsync(scheme);
     }
 }
-
-public class FakeAuthServiceHelper : IAuthServiceHelper
-{
-    public Task SignInAsync(string scheme, ClaimsPrincipal principal)
-    {
-        return Task.CompletedTask;
-    }
-
-    public Task SignOutAsync(string scheme)
-    {
-        return Task.CompletedTask;
-    }
-}

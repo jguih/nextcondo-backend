@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using NextCondoApi.Entity;
+using NextCondoApi.Services;
 using Npgsql;
 using Respawn;
 
@@ -8,20 +9,22 @@ namespace IntegrationTests.Utils;
 
 public static class DbUtils
 {
-    public static async Task AddTestUserAsync(NextCondoApiDbContext db, IPasswordHasher<User> hasher)
+    public static async Task AddTestUserAsync(IUsersRepository users, IRolesRepository roles, IPasswordHasher<User> hasher)
     {
+        Role defaultRole = await roles.GetDefaultAsync();
         var user = new User()
         {
             Email = "test@test.com",
             FullName = "Test User",
             Phone = "123456",
-            RoleId = "Tenant",
+            RoleId = defaultRole.Name,
+            Role = defaultRole,
         };
         var passwordHash = hasher.HashPassword(user, "test12345");
         user.PasswordHash = passwordHash;
 
-        await db.Users.AddAsync(user);
-        await db.SaveChangesAsync();
+        await users.AddAsync(user);
+        await users.SaveAsync();
     }
 
     public static async Task CleanUpAsync(IConfiguration configuration)

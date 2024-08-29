@@ -52,12 +52,14 @@ public class AuthService : IAuthService
             return true;
         }
 
+        Role defaultRole = await rolesRepository.GetDefaultAsync();
         var user = new User()
         {
             Email = email,
             FullName = fullName,
             Phone = phone,
-            RoleId = (await rolesRepository.GetDefaultAsync()).Name,
+            Role = defaultRole,
+            RoleId = defaultRole.Name,
         };
         var passwordHash = hasher.HashPassword(user, password);
         user.PasswordHash = passwordHash;
@@ -103,6 +105,7 @@ public class AuthService : IAuthService
         {
             protector.Protect(user.Email);
         }
+        throw new NotImplementedException();
     }
 
     public async Task LogoutAsync(string scheme)

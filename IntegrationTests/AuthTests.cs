@@ -5,7 +5,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using NextCondoApi;
 using NextCondoApi.Entity;
-using Xunit.Sdk;
+using NextCondoApi.Services;
 
 namespace IntegrationTests;
 
@@ -26,9 +26,10 @@ public class AuthTests
         using (var scope = _factory.Services.CreateScope())
         {
             var provider = scope.ServiceProvider;
-            var db = provider.GetRequiredService<NextCondoApiDbContext>();
+            var users = provider.GetRequiredService<IUsersRepository>();
+            var roles = provider.GetRequiredService<IRolesRepository>();
             var hasher = provider.GetRequiredService<IPasswordHasher<User>>();
-            await DbUtils.AddTestUserAsync(db, hasher);
+            await DbUtils.AddTestUserAsync(users, roles, hasher);
         };
         var client = _factory.CreateClient();
         var credentials = new FormUrlEncodedContent(

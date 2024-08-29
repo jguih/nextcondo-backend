@@ -30,8 +30,8 @@ public class UserEntityTypeConfiguration : IEntityTypeConfiguration<User>
 
         builder
           .HasOne(user => user.Role)
-          .WithMany(user => user.Users)
-          .HasForeignKey(user => new { user.Id, user.RoleId })
+          .WithMany()
+          .HasForeignKey(user => user.RoleId)
           .IsRequired();
 
         builder

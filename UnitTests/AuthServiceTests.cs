@@ -5,7 +5,7 @@ using Moq;
 using NextCondoApi.Entity;
 using NextCondoApi.Services;
 using NextCondoApi.Services.Auth;
-using System.Security.Claims;
+using UnitTests.Fakes;
 
 namespace UnitTests;
 
@@ -45,20 +45,20 @@ public class AuthServiceTests
     }
 
     [Fact]
-    public async void Test1()
+    public async void RegisterUserWhenOneWithSameEmailDoesNotExist()
     {
+        // Arrange
         usersRepository
             .Setup(mock => mock.GetByEmailAsync(It.IsAny<string>()))
             .Returns(Task.FromResult<User?>(null));
-
         usersRepository
             .Setup(mock => mock.AddAsync(It.IsAny<User>()))
             .Returns(Task.FromResult(true));
-
         usersRepository
             .Setup(mock => mock.SaveAsync())
             .Returns(Task.FromResult(1));
 
+        // Act
         var result = await authService.RegisterAsync(
                 fullName: "Testing",
                 email: "email@email.com",
@@ -67,18 +67,23 @@ public class AuthServiceTests
                 scheme: "local"
             );
 
+        // Assert
+        usersRepository
+            .Verify(repo => repo.AddAsync(It.IsAny<User>()), Times.Once);
         Assert.True(result);
     }
 
     [Fact]
-    public async void ReturnsTrue_WhenProvidedEmailExists()
+    public async void DoesNotRegisterUserWhenProvidedEmailExists()
     {
+        // Arrange
         var mockUser = new Mock<User>();
         var userEmail = "email@email.com";
         usersRepository
             .Setup(mock => mock.GetByEmailAsync(userEmail))
             .Returns(Task.FromResult<User?>(mockUser.Object));
 
+        // Act
         var result = await authService.RegisterAsync(
                 fullName: "Testing",
                 email: userEmail,
@@ -87,10 +92,36 @@ public class AuthServiceTests
                 scheme: "local"
             );
 
+        // Assert
         usersRepository
             .Verify(repo => repo.GetByEmailAsync(userEmail), Times.Once);
-        rolesRepository
-            .Verify(repo => repo.GetDefaultAsync(), Times.Never);
+        usersRepository
+            .Verify(repo => repo.AddAsync(It.IsAny<User>()), Times.Never);
+        Assert.True(result);
+    }
+
+    [Fact]
+    public async void LoginUserIfItExists()
+    {
+        // Arrange
+        var mockUser = new Mock<User>();
+        //mockUser
+        //    .Setup(mock => mock.GetClaims())
+        //    .Returns([]);
+        var userEmail = "test@email.com";
+        usersRepository
+            .Setup(mock => mock.GetByEmailAsync(userEmail))
+            .Returns(Task.FromResult<User?>(mockUser.Object));
+
+        // Act
+        var result = await authService
+            .LoginAsync(
+                userEmail,
+                password: "password",
+                scheme: "local"
+            );
+
+        // Assert
         Assert.True(result);
     }
 }

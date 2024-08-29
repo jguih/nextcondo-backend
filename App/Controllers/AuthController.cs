@@ -60,7 +60,7 @@ public class AuthController : ControllerBase
                         title: "Bad input",
                         detail: "Unable to register user with provided details",
                         statusCode: StatusCodes.Status400BadRequest,
-                        type: "bad request"
+                        type: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400"
                     );
         }
         return Ok(new { Status = "Ok" });

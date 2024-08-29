@@ -11,7 +11,7 @@ public class RoleEntityTypeConfiguration : IEntityTypeConfiguration<Role>
           .HasKey(u => u.Name);
 
         builder
-          .HasMany(e => e.Users)
+          .HasMany<User>()
           .WithOne(e => e.Role)
           .HasForeignKey(e => e.RoleId)
           .IsRequired();
@@ -20,13 +20,13 @@ public class RoleEntityTypeConfiguration : IEntityTypeConfiguration<Role>
           .HasData(
             new
             {
-                Name = "Tenant",
+                Name = "User",
                 CreatedAt = new DateTimeOffset(new DateTime(2024, 8, 13, 22, 0, 46, 966, DateTimeKind.Utc)),
                 UpdatedAt = new DateTimeOffset(new DateTime(2024, 8, 13, 22, 0, 46, 966, DateTimeKind.Utc))
             },
             new
             {
-                Name = "Manager",
+                Name = "Admin",
                 CreatedAt = new DateTimeOffset(new DateTime(2024, 8, 13, 22, 0, 46, 966, DateTimeKind.Utc)),
                 UpdatedAt = new DateTimeOffset(new DateTime(2024, 8, 13, 22, 0, 46, 966, DateTimeKind.Utc))
             }

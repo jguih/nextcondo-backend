@@ -25,7 +25,7 @@ public class CondominiumEntityTypeConfiguration : IEntityTypeConfiguration<Condo
 
         builder
             .HasOne(condo => condo.Owner)
-            .WithOne(user => user.Condominium)
+            .WithOne()
             .HasForeignKey<Condominium>(condo => condo.OwnerId)
             .IsRequired();
 
