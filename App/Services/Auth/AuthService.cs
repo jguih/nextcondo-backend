@@ -82,19 +82,20 @@ public class AuthService : IAuthService
     public async Task<bool> LoginAsync(string email, string password, string scheme)
     {
         var user = await usersRepository.GetByEmailAsync(email);
-        if (user != null)
+        if (user == null)
         {
-            var result = hasher.VerifyHashedPassword(user, user.PasswordHash, password);
-            if (result == PasswordVerificationResult.Success)
-            {
-                var claims = user.GetClaims();
-                var identity = new ClaimsIdentity(claims, scheme);
-                var principal = new ClaimsPrincipal(identity);
-                await helper.SignInAsync(scheme, principal);
-                return await Task.FromResult(true);
-            }
+            return false;
         }
-        return await Task.FromResult(false);
+        var result = hasher.VerifyHashedPassword(user, user.PasswordHash, password);
+        if (result == PasswordVerificationResult.Success)
+        {
+            var claims = user.GetClaims();
+            var identity = new ClaimsIdentity(claims, scheme);
+            var principal = new ClaimsPrincipal(identity);
+            await helper.SignInAsync(scheme, principal);
+            return true;
+        }
+        return false;
     }
 
     public async Task SendPasswordResetEmail(string email)

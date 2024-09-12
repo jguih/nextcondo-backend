@@ -1,127 +1,119 @@
 
+using Bogus;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Moq;
 using NextCondoApi.Entity;
-using NextCondoApi.Services;
 using NextCondoApi.Services.Auth;
+using TestFakes;
 using UnitTests.Fakes;
 
 namespace UnitTests;
 
-public class AuthServiceTests
+public class AuthServiceTests : IAsyncLifetime
 {
-    private readonly Mock<IUsersRepository> usersRepository;
-    private readonly Mock<IRolesRepository> rolesRepository;
-    private readonly Mock<IPasswordHasher<User>> hasher;
-    private readonly Mock<IDataProtectionProvider> dataProtectionProvider;
-    private readonly IAuthServiceHelper authServiceHelper;
-    private readonly IAuthService authService;
+    private FakeUsersRepository UsersRepository { get; set; } = null!;
+    private FakeRolesRepository RolesRepository { get; set; } = null!;
+    private FakeAuthServiceHelper AuthServiceHelper { get; set; } = null!;
+    private Mock<IPasswordHasher<User>> Hasher { get; set; } = null!;
+    private Mock<IDataProtectionProvider> DataProtectionProvider { get; set; } = null!;
+    private AuthService AuthService { get; set; } = null!;
+    private Faker Faker { get; set; }
 
     public AuthServiceTests()
     {
-        usersRepository = new Mock<IUsersRepository>();
-        rolesRepository = new Mock<IRolesRepository>();
-        hasher = new Mock<IPasswordHasher<User>>();
-        dataProtectionProvider = new Mock<IDataProtectionProvider>();
-        authServiceHelper = new FakeAuthServiceHelper();
+        Faker = new Faker("pt_BR");
+    }
 
-        hasher
-            .Setup(mock => mock.HashPassword(It.IsAny<User>(), It.IsAny<string>()))
-            .Returns("!$%$!@#111231$!@312");
+    private async Task ConfigureServices()
+    {
+        var servicesMockFactory = new ServicesMockFactory();
+        RolesRepository = await FakeRolesRepository.Create();
+        UsersRepository = new FakeUsersRepository();
+        AuthServiceHelper = new FakeAuthServiceHelper();
+        Hasher = servicesMockFactory.GetUserPasswordHasher();
+        DataProtectionProvider = servicesMockFactory.GetDataProtectionProvider();
 
-        Role mockedRole = new() { Name = "Tenant" };
-        rolesRepository
-            .Setup(mock => mock.GetDefaultAsync())
-            .Returns(Task.FromResult(mockedRole));
-
-        authService = new AuthService(
-                usersRepository.Object,
-                rolesRepository.Object,
-                hasher.Object,
-                dataProtectionProvider.Object,
-                authServiceHelper
+        AuthService = new AuthService(
+                UsersRepository,
+                RolesRepository,
+                Hasher.Object,
+                DataProtectionProvider.Object,
+                AuthServiceHelper
             );
     }
 
+    public async Task InitializeAsync()
+    {
+        await ConfigureServices();
+    }
+
     [Fact]
-    public async void RegisterUserWhenOneWithSameEmailDoesNotExist()
+    public async Task RegisterUser_WhenOneWithSameEmailDoesNotExist()
     {
         // Arrange
-        usersRepository
-            .Setup(mock => mock.GetByEmailAsync(It.IsAny<string>()))
-            .Returns(Task.FromResult<User?>(null));
-        usersRepository
-            .Setup(mock => mock.AddAsync(It.IsAny<User>()))
-            .Returns(Task.FromResult(true));
-        usersRepository
-            .Setup(mock => mock.SaveAsync())
-            .Returns(Task.FromResult(1));
+        var userDetails = FakeUsersFactory.GetFakeUserDetails();
 
         // Act
-        var result = await authService.RegisterAsync(
-                fullName: "Testing",
-                email: "email@email.com",
-                password: "password",
-                phone: "55 1234556",
+        var result = await AuthService.RegisterAsync(
+                fullName: userDetails.FullName,
+                email: userDetails.Email,
+                password: userDetails.Password,
+                phone: userDetails.Phone,
                 scheme: "local"
             );
+        var created = await UsersRepository.GetByEmailAsync(userDetails.Email);
 
         // Assert
-        usersRepository
-            .Verify(repo => repo.AddAsync(It.IsAny<User>()), Times.Once);
         Assert.True(result);
+        Assert.NotNull(created);
     }
 
     [Fact]
-    public async void DoesNotRegisterUserWhenProvidedEmailExists()
+    public async Task DoesNotRegisterUser_WhenProvidedEmailExists()
     {
         // Arrange
-        var mockUser = new Mock<User>();
-        var userEmail = "email@email.com";
-        usersRepository
-            .Setup(mock => mock.GetByEmailAsync(userEmail))
-            .Returns(Task.FromResult<User?>(mockUser.Object));
+        var password = Faker.Internet.Password();
+        var fakeUser = FakeUsersFactory.GetFakeUser();
+        await UsersRepository.AddAsync(fakeUser);
 
         // Act
-        var result = await authService.RegisterAsync(
-                fullName: "Testing",
-                email: userEmail,
-                password: "password",
-                phone: "55 1234556",
+        var result = await AuthService.RegisterAsync(
+                fullName: fakeUser.FullName,
+                email: fakeUser.Email,
+                password: password,
+                phone: fakeUser.Phone,
                 scheme: "local"
             );
+        var allUsers = await UsersRepository.GetAllAsync();
 
         // Assert
-        usersRepository
-            .Verify(repo => repo.GetByEmailAsync(userEmail), Times.Once);
-        usersRepository
-            .Verify(repo => repo.AddAsync(It.IsAny<User>()), Times.Never);
         Assert.True(result);
+        Assert.Single(allUsers);
     }
 
     [Fact]
-    public async void LoginUserIfItExists()
+    public async Task LoginUser_IfUserExists()
     {
         // Arrange
-        var mockUser = new Mock<User>();
-        //mockUser
-        //    .Setup(mock => mock.GetClaims())
-        //    .Returns([]);
-        var userEmail = "test@email.com";
-        usersRepository
-            .Setup(mock => mock.GetByEmailAsync(userEmail))
-            .Returns(Task.FromResult<User?>(mockUser.Object));
+        User fakeUser = FakeUsersFactory.GetFakeUser();
+        var password = Faker.Internet.Password();
+        await UsersRepository.AddAsync(fakeUser);
 
         // Act
-        var result = await authService
+        var result = await AuthService
             .LoginAsync(
-                userEmail,
-                password: "password",
+                email: fakeUser.Email,
+                password,
                 scheme: "local"
             );
 
         // Assert
         Assert.True(result);
+    }
+
+    public Task DisposeAsync()
+    {
+        return Task.CompletedTask;
     }
 }

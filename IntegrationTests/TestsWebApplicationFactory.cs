@@ -1,11 +1,15 @@
-﻿using Microsoft.AspNetCore.Hosting;
+﻿using IntegrationTests.Utils;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.DependencyInjection;
+using NextCondoApi;
+using Microsoft.Extensions.Configuration;
 
 namespace IntegrationTests;
 
 public class TestsWebApplicationFactory<TProgram>
-    : WebApplicationFactory<TProgram> where TProgram : class
+    : WebApplicationFactory<TProgram> where TProgram : Program
 {
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -20,5 +24,17 @@ public class TestsWebApplicationFactory<TProgram>
         });
 
         builder.UseEnvironment("Tests");
+    }
+
+    public override async ValueTask DisposeAsync()
+    {
+        // Clear Resources
+        using (var scope = Services.CreateScope())
+        {
+            var provider = scope.ServiceProvider;
+            var configuration = provider.GetRequiredService<IConfiguration>();
+            await DbUtils.CleanUpAsync(configuration);
+        };
+        await base.DisposeAsync();
     }
 }

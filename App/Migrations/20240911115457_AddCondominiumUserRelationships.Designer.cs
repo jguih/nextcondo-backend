@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NextCondoApi.Entity;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace NextCondoApi.Migrations
 {
     [DbContext(typeof(NextCondoApiDbContext))]
-    partial class SimplifyCondoApiDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240911115457_AddCondominiumUserRelationships")]
+    partial class AddCondominiumUserRelationships
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -48,7 +51,8 @@ namespace NextCondoApi.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("OwnerId");
+                    b.HasIndex("OwnerId")
+                        .IsUnique();
 
                     b.ToTable("Condominium");
                 });
@@ -150,8 +154,8 @@ namespace NextCondoApi.Migrations
             modelBuilder.Entity("NextCondoApi.Entity.Condominium", b =>
                 {
                     b.HasOne("NextCondoApi.Entity.User", "Owner")
-                        .WithMany()
-                        .HasForeignKey("OwnerId")
+                        .WithOne()
+                        .HasForeignKey("NextCondoApi.Entity.Condominium", "OwnerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 

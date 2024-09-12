@@ -6,84 +6,74 @@
 trigger:
   tags:
     include:
-    - '*'
+      - "*"
 
 pool: "Home Server"
 
 stages:
   - stage: build
     jobs:
-    - job:
-      displayName: "Build dotnetapp"
-      steps:
-      - task: DotNetCoreCLI@2
-        inputs:
-          command: 'build'
-  
-  - stage: publish
+      - job:
+        displayName: "Build dotnetapp"
+        steps:
+          - task: DotNetCoreCLI@2
+            inputs:
+              command: "build"
+
+  - stage: apply_migrations
     dependsOn: build
     jobs:
-    - job:
-      displayName: "Publish dotneapp"
-      steps:
-      - task: DotNetCoreCLI@2
-        inputs:
-          command: 'publish'
-          publishWebProjects: false
-          projects: 'App'
-          arguments: '-c Release -o $(System.DefaultWorkingDirectory)/App/release /p:UseAppHost=false'
-          zipAfterPublish: false
-          modifyOutputPath: false
-      - script: |
-          dotnet ef migrations bundle -o $(System.DefaultWorkingDirectory)/App/release/bundle --project App
-        displayName: "Create migrations bundle"
-      - task: PublishPipelineArtifact@1
-        inputs:
-          targetPath: '$(System.DefaultWorkingDirectory)/App/release'
-          artifact: 'dotnetapp'
-          publishLocation: 'pipeline'
+      - job:
+        displayName: "Apply migrations"
+        steps:
+          - script: |
+              dotnet ef database update --project App
+            displayName: "Applying migrations to test database"
+
+  - stage: test
+    dependsOn: apply_migrations
+    jobs:
+      - job:
+        displayName: "Test dotnetapp"
+        steps:
+          - task: DotNetCoreCLI@2
+            inputs:
+              command: "test"
+              testRunTitle: "Unit and Integration Tests"
 
   - stage: deploy
-    dependsOn: publish
+    dependsOn: test
     condition: startsWith(variables['Build.SourceBranch'], 'refs/tags/')
     jobs:
-    - deployment: 
-      displayName: "Deploy docker image"
-      environment:
-        name: "nextcondo-backend"
-      strategy:
-        runOnce:
-          deploy:
-            steps:
-            - checkout: self
-            - task: DownloadPipelineArtifact@2
-              inputs:
-                buildType: 'current'
-                artifactName: 'dotnetapp'
-                targetPath: '$(System.DefaultWorkingDirectory)/App/release'
-            - task: Docker@2
-              displayName: 'Build docker image'
-              inputs:
-                containerRegistry: 'azure'
-                repository: 'thejguih/nextcondoapi'
-                command: 'build'
-                Dockerfile: 'App/Dockerfile'
-                buildContext: 'App'
-                tags: |
-                  $(Build.SourceBranchName)
-                  latest
-            - task: Docker@2
-              displayName: 'Publish image to docker-hub'
-              inputs:
-                containerRegistry: 'azure'
-                repository: 'thejguih/nextcondoapi'
-                command: 'push'
-                tags: |
-                  $(Build.SourceBranchName)
-                  latest
-            - script: |
-                docker rmi thejguih/nextcondoapi:$(Build.SourceBranchName)
-              displayName: "Remove image $(Build.SourceBranchName) from host"
-            - script: |
-                docker rmi thejguih/nextcondoapi:latest
-              displayName: "Remove image latest from host"
+      - deployment:
+        displayName: "Deploy docker image"
+        environment:
+          name: "nextcondo-backend"
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+                - task: Docker@2
+                  displayName: "Build docker image"
+                  inputs:
+                    containerRegistry: "azure"
+                    repository: "thejguih/nextcondoapi"
+                    command: "build"
+                    Dockerfile: "App/Dockerfile"
+                    buildContext: "App"
+                    tags: |
+                      $(Build.SourceBranchName)
+                      latest
+                - task: Docker@2
+                  displayName: "Publish image to docker-hub"
+                  inputs:
+                    containerRegistry: "azure"
+                    repository: "thejguih/nextcondoapi"
+                    command: "push"
+                    tags: |
+                      $(Build.SourceBranchName)
+                      latest
+                - script: |
+                    docker rmi thejguih/nextcondoapi:$(Build.SourceBranchName)
+                  displayName: "Remove image $(Build.SourceBranchName) from host"

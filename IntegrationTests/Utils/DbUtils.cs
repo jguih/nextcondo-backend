@@ -4,27 +4,34 @@ using NextCondoApi.Entity;
 using NextCondoApi.Services;
 using Npgsql;
 using Respawn;
+using TestFakes;
 
 namespace IntegrationTests.Utils;
 
 public static class DbUtils
 {
-    public static async Task AddTestUserAsync(IUsersRepository users, IRolesRepository roles, IPasswordHasher<User> hasher)
+    public static async Task<Guid> AddTestUserAsync(
+        RegisterUserDetails userDetails,
+        IUsersRepository users, 
+        IRolesRepository roles, 
+        IPasswordHasher<User> hasher)
     {
         Role defaultRole = await roles.GetDefaultAsync();
         var user = new User()
         {
-            Email = "test@test.com",
-            FullName = "Test User",
-            Phone = "123456",
+            Email = userDetails.Email,
+            FullName = userDetails.FullName,
+            Phone = userDetails.Phone,
             RoleId = defaultRole.Name,
             Role = defaultRole,
         };
-        var passwordHash = hasher.HashPassword(user, "test12345");
+        var passwordHash = hasher.HashPassword(user, userDetails.Password);
         user.PasswordHash = passwordHash;
 
         await users.AddAsync(user);
         await users.SaveAsync();
+
+        return user.Id;
     }
 
     public static async Task CleanUpAsync(IConfiguration configuration)

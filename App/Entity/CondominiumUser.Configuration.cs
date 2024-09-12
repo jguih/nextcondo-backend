@@ -8,14 +8,24 @@ public class CondominiumUserTypeConfiguration : IEntityTypeConfiguration<Condomi
     public void Configure(EntityTypeBuilder<CondominiumUser> builder)
     {
         builder
-            .HasKey(e => new { e.UserId, e.RelationshipType, e.CondominiumId });
+            .HasKey(condo => new { condo.UserId, condo.RelationshipType, condo.CondominiumId });
 
         builder
-            .Navigation(condo => condo.User)
+            .HasOne(condoUser => condoUser.User)
+            .WithMany()
+            .HasForeignKey(condoUser => condoUser.UserId);
+
+        builder
+            .HasOne(condoUser => condoUser.Condominium)
+            .WithMany(condo => condo.Members)
+            .HasForeignKey(condoUser => condoUser.CondominiumId);
+
+        builder
+            .Navigation(condoUser => condoUser.User)
             .AutoInclude();
 
         builder
-            .Navigation(condo => condo.Condominium)
+            .Navigation(condoUser => condoUser.Condominium)
             .AutoInclude();
     }
 }

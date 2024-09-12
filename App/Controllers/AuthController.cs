@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using NextCondoApi.Models.DTO;
 using NextCondoApi.Services.Auth;
+using System.Net.Mime;
 
 namespace NextCondoApi.Controllers;
 
@@ -28,6 +30,15 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("login")]
+    [Consumes(MediaTypeNames.Multipart.FormData)]
+    [ProducesResponseType(
+        typeof(GenericResponseDTO),
+        StatusCodes.Status200OK,
+        MediaTypeNames.Application.Json)]
+    [ProducesResponseType(
+        typeof(ProblemDetails),
+        StatusCodes.Status401Unauthorized,
+        MediaTypeNames.Application.ProblemJson)]
     public async Task<IActionResult> LoginAsync([FromForm] LoginCredentialsDTO credentials)
     {
         var result = await auth.LoginAsync(credentials.Email, credentials.Password, "local");
@@ -40,10 +51,15 @@ public class AuthController : ControllerBase
                     type: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401"
                 );
         }
-        return Ok(new { Status = "Ok" });
+        return Ok(new GenericResponseDTO() { Status = "Ok" });
     }
 
     [HttpPost("register")]
+    [Consumes(MediaTypeNames.Multipart.FormData)]
+    [ProducesResponseType(
+        typeof(GenericResponseDTO),
+        StatusCodes.Status200OK,
+        MediaTypeNames.Application.Json)]
     public async Task<IActionResult> RegisterAsync([FromForm] RegisterUserDTO newUser)
     {
         var result = await auth
@@ -63,14 +79,22 @@ public class AuthController : ControllerBase
                         type: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400"
                     );
         }
-        return Ok(new { Status = "Ok" });
+        return Ok(new GenericResponseDTO() { Status = "Ok" });
     }
 
-    [Authorize]
     [HttpGet("logout")]
+    [Authorize]
+    [ProducesResponseType(
+        typeof(ProblemDetails),
+        StatusCodes.Status401Unauthorized,
+        MediaTypeNames.Application.ProblemJson)]
+    [ProducesResponseType(
+        typeof(GenericResponseDTO),
+        StatusCodes.Status200OK,
+        MediaTypeNames.Application.Json)]
     public async Task<IActionResult> SignOutAsync()
     {
         await auth.LogoutAsync("local");
-        return Ok(new { Status = "Ok" });
+        return Ok(new GenericResponseDTO() { Status = "Ok" });
     }
 }

@@ -16,7 +16,7 @@ public class Program
         builder.Services.AddControllers();
         builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
         builder.AddAuth();
-        builder.AddSwagger();
+        builder.AddSwagger(configuration);
         builder.AddRepositories();
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.ConfigureHttpJsonOptions(opt =>

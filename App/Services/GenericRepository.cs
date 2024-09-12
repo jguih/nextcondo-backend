@@ -3,7 +3,9 @@ using NextCondoApi.Entity;
 
 namespace NextCondoApi.Services;
 
-public class GenericRepository<TEntity> : IGenericRepository<TEntity> where TEntity : class
+public class GenericRepository<TEntity> 
+    : IGenericRepository<TEntity> 
+    where TEntity : BaseEntity
 {
     protected NextCondoApiDbContext db;
     protected ILogger logger;
@@ -16,10 +18,9 @@ public class GenericRepository<TEntity> : IGenericRepository<TEntity> where TEnt
         this.entitiesDb = context.Set<TEntity>();
     }
 
-    public virtual async Task<bool> AddAsync(TEntity entity)
+    public virtual async Task AddAsync(TEntity entity)
     {
         await entitiesDb.AddAsync(entity);
-        return true;
     }
 
     public virtual async Task<bool> DeleteAsync(object id)

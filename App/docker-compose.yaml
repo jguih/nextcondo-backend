@@ -1,36 +1,28 @@
 services:
-
-  nextcondoapi-test: 
-    container_name: nextcondoapi-test
+  nextcondo-backend: 
     build:
       dockerfile: ./Dockerfile
       context: .
     ports:
       - 8080:8080
     depends_on:
-      - nextcondo-testdb
+      - nextcondo-postgres
     environment:
-      DB_HOST: nextcondo-testdb
       DB_USER: nextcondo
       DB_PASSWORD: nextcondo
       DB_DATABASE: nextcondo
     networks:
-      - services
-    dns:
-      - 172.18.0.22
+      - nextcondotest
 
-  nextcondo-testdb:
+  nextcondo-postgres:
     image: 'postgres:latest'
-    container_name: nextcondo-testdb
     environment:
       POSTGRES_USER: nextcondo
       POSTGRES_PASSWORD: nextcondo
       POSTGRES_DB: nextcondo
     networks:
-      - services
-    dns:
-      - 172.18.0.22
+      - nextcondotest
 
 networks: 
-  services:
+  nextcondotest:
     external: true
