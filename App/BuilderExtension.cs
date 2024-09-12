@@ -2,12 +2,10 @@
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using NextCondoApi.Entity;
 using NextCondoApi.Services;
 using NextCondoApi.Services.Auth;
-using System.Text;
 
 namespace NextCondoApi;
 
@@ -15,23 +13,7 @@ public static class BuilderExtension
 {
     public static void AddAuth(this WebApplicationBuilder builder)
     {
-        var JwtSecret = builder.Configuration.GetSection("JWT_SECRET").Get<string>()!;
-        var Audiences = builder.Configuration.GetSection("JWT_AUDIENCES").Get<string>()!;
-        var Issuer = builder.Configuration.GetSection("JWT_ISSUER").Get<string>()!;
-
         builder.Services.AddAuthentication()
-            .AddJwtBearer("supabase", o =>
-                {
-                    o.TokenValidationParameters = new()
-                    {
-                        ValidateIssuerSigningKey = true,
-                        ValidateAudience = true,
-                        ValidateIssuer = true,
-                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(JwtSecret)),
-                        ValidAudiences = Audiences.Split(","),
-                        ValidIssuer = Issuer
-                    };
-                })
             .AddCookie("local", options =>
             {
                 options.LoginPath = string.Empty;
@@ -53,7 +35,6 @@ public static class BuilderExtension
         builder.Services.AddAuthorization(options =>
         {
             var defaultAuthorizationPolicyBuilder = new AuthorizationPolicyBuilder(
-                    "supabase",
                     "local"
                 );
             defaultAuthorizationPolicyBuilder = defaultAuthorizationPolicyBuilder.RequireAuthenticatedUser();
@@ -61,46 +42,25 @@ public static class BuilderExtension
         });
     }
 
-    public static void AddSwagger(this WebApplicationBuilder builder)
+    public static void AddSwagger(this WebApplicationBuilder builder, IConfiguration configuration)
     {
+        var publicURL = configuration.GetSection("PUBLIC_URL").Get<string>();
+
         builder.Services.AddSwaggerGen(c =>
         {
-            //c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-            //{
-            //    Description = "JWT Authorization header using the Bearer scheme.",
-            //    Name = "Authorization",
-            //    In = ParameterLocation.Header,
-            //    Type = SecuritySchemeType.ApiKey,
-            //    Scheme = "Bearer",
-            //});
-
-            //c.AddSecurityRequirement(new OpenApiSecurityRequirement
-            //{
-            //      {
-            //          new OpenApiSecurityScheme
-            //          {
-            //              Reference = new OpenApiReference
-            //              {
-            //                  Type = ReferenceType.SecurityScheme,
-            //                  Id = "Bearer"
-            //              },
-            //              Scheme = "oauth2",
-            //              Name = "Bearer",
-            //              In = ParameterLocation.Header
-            //          },
-            //          new List<string>()
-            //      }
-            //});
             c.AddServer(new OpenApiServer()
             {
-                Url = "https://nextcondo-dev.home.arpa/api",
-                Description = "Caddy proxy"
-            });
-            c.AddServer(new OpenApiServer()
-            {
-                Url = "http://localhost:5294",
+                Url = "http://localhost:8080",
                 Description = "Localhost"
             });
+            if (!string.IsNullOrEmpty(publicURL))
+            {
+                c.AddServer(new OpenApiServer()
+                {
+                    Url = publicURL,
+                    Description = "Public address"
+                });
+            }
         });
     }
 
@@ -120,6 +80,7 @@ public static class BuilderExtension
         builder.Services.AddDataProtection();
         builder.Services.AddScoped<IUsersRepository, UsersRepository>();
         builder.Services.AddScoped<IRolesRepository, RolesRepository>();
+        builder.Services.AddScoped<ICondominiumsRepository, CondominiumsRepository>();
         builder.Services.AddScoped<IAuthServiceHelper, AuthServiceHelper>();
         builder.Services.AddScoped<IAuthService, AuthService>();
     }

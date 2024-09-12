@@ -8,29 +8,33 @@ public class CondominiumEntityTypeConfiguration : IEntityTypeConfiguration<Condo
     public void Configure(EntityTypeBuilder<Condominium> builder)
     {
         builder
-          .HasKey(o => o.Id);
+          .HasKey(condo => condo.Id);
 
         builder
-            .Property(o => o.Name)
+            .Property(condo => condo.Name)
             .IsRequired()
             .HasMaxLength(255);
 
         builder
-            .Property(o => o.Description)
-            .HasMaxLength(255);
+            .Property(condo => condo.Description)
+            .HasMaxLength(2000);
 
-        builder.Property(o => o.CreatedAt);
+        builder.Property(condo => condo.CreatedAt);
 
-        builder.Property(o => o.UpdatedAt);
+        builder.Property(condo => condo.UpdatedAt);
 
         builder
             .HasOne(condo => condo.Owner)
-            .WithOne()
-            .HasForeignKey<Condominium>(condo => condo.OwnerId)
+            .WithMany()
+            .HasForeignKey(condo => condo.OwnerId)
             .IsRequired();
 
         builder
-            .Navigation(e => e.Owner)
+            .Navigation(condo => condo.Owner)
+            .AutoInclude();
+
+        builder
+            .Navigation(condo => condo.Members)
             .AutoInclude();
     }
 }

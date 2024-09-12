@@ -1,4 +1,5 @@
-﻿namespace NextCondoApi.Services;
+﻿
+namespace NextCondoApi.Services;
 
 public interface IGenericRepository<TEntity> where TEntity : class
 {
@@ -18,7 +19,7 @@ public interface IGenericRepository<TEntity> where TEntity : class
     /// </summary>
     /// <param name="entity">Entity to be added</param>
     /// <returns>A boolean that indicated wether the operation was successfull or not.</returns>
-    public Task<bool> AddAsync(TEntity entity);
+    public Task AddAsync(TEntity entity);
     /// <summary>
     /// Delete an entity.
     /// </summary>

@@ -1,12 +1,18 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using NextCondoApi.Controllers.UsersControllerDTO;
+using NextCondoApi.Models.DTO;
 using NextCondoApi.Services;
 using NextCondoApi.Utils.ClaimsPrincipalExtension;
+using NextCondoApi.Entity;
+using System.Net.Mime;
 
 namespace NextCondoApi.Controllers;
 
 [Authorize]
+[ProducesResponseType(
+        typeof(ProblemDetails),
+        StatusCodes.Status401Unauthorized,
+        MediaTypeNames.Application.ProblemJson)]
 [Route("[controller]")]
 [ApiController]
 public class UsersController : ControllerBase
@@ -18,75 +24,77 @@ public class UsersController : ControllerBase
         this.users = users;
     }
 
-    [HttpPut]
-    public async Task<IResult> EditAsync([FromBody] EditUserDTO newUser)
-    {
-        var id = User.GetIdentity();
-        var existing = await users.GetByIdAsync(id);
+    //[HttpPut]
+    //public async Task<IActionResult> EditAsync([FromForm] EditUserDTO newUser)
+    //{
+    //    var id = User.GetIdentity();
+    //    var existing = await users.GetByIdAsync(id);
 
-        if (existing == null)
-        {
-            return TypedResults.Problem(
-                        title: "User doesn't exist",
-                        detail: $"Could not find user with id {id}",
-                        type: "",
-                        statusCode: StatusCodes.Status400BadRequest
-                    );
-        }
+    //    if (existing == null)
+    //    {
+    //        return Problem(
+    //                    title: "User doesn't exist",
+    //                    detail: $"Could not find user with id {id}",
+    //                    type: "",
+    //                    statusCode: StatusCodes.Status404NotFound
+    //                );
+    //    }
 
-        if (newUser.FullName != null)
-        {
-            existing.FullName = newUser.FullName;
-        }
+    //    if (newUser.FullName != null)
+    //    {
+    //        existing.FullName = newUser.FullName;
+    //    }
 
-        if (newUser.Phone != null)
-        {
-            existing.Phone = newUser.Phone;
-        }
+    //    if (newUser.Phone != null)
+    //    {
+    //        existing.Phone = newUser.Phone;
+    //    }
 
-        await users.SaveAsync();
+    //    await users.SaveAsync();
 
-        return TypedResults.Extensions.NoContent();
-    }
+    //    return Ok();
+    //}
 
     [HttpGet("all")]
-    public async Task<IResult> GetAll()
+    [ProducesResponseType(
+        typeof(List<UserDTO>),
+        StatusCodes.Status200OK,
+        MediaTypeNames.Application.Json)]
+    public async Task<IActionResult> GetAll()
     {
-        var users = (await this.users.GetAllAsync())
-            .Select(user => new UserDTO()
-            {
-                Id = user.Id,
-                Email = user.Email,
-                Role = new UserDTO.UserRole()
-                {
-                    Name = user.Role!.Name,
-                }
-            });
-        if (users.Any())
-        {
-            return TypedResults.Ok(users);
-        }
-        return TypedResults.Extensions.NoContent();
+        List<User> users = await this.users.GetAllAsync();
+        List<UserDTO> usersDtos = (from user in users
+                                   select UserDTO.FromUser(user))
+                                   .ToList();
+            
+        return Ok(usersDtos);
     }
 
     [HttpGet("me")]
-    public async Task<IResult> GetMeAsync()
+    [ProducesResponseType(
+        typeof(UserDTO),
+        StatusCodes.Status200OK,
+        MediaTypeNames.Application.Json)]
+    [ProducesResponseType(
+        typeof(ProblemDetails),
+        StatusCodes.Status404NotFound,
+        MediaTypeNames.Application.ProblemJson)]
+    public async Task<IActionResult> GetMeAsync()
     {
         var id = HttpContext.User.GetIdentity();
         var user = await users.GetByIdAsync(id);
+
         if (user == null)
         {
-            return TypedResults.Extensions.NoContent();
+            return Problem(
+                        title: "User not found",
+                        detail: $"User with id {id} not found",
+                        statusCode: StatusCodes.Status404NotFound,
+                        type: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404"
+                    );
         }
-        var userDto = new UserDTO()
-        {
-            Email = user.Email,
-            Id = user.Id,
-            Role = new UserDTO.UserRole()
-            {
-                Name = user.Role!.Name,
-            },
-        };
-        return TypedResults.Ok(userDto);
+
+        UserDTO userDto = UserDTO.FromUser(user);
+        return Ok(userDto);
     }
 }

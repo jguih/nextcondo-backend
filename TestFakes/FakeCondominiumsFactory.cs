@@ -1,0 +1,6 @@
+﻿
+namespace TestFakes;
+
+class FakeCondominiumsFactory
+{
+}

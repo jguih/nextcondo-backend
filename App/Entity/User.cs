@@ -7,11 +7,15 @@ public class User : BaseEntity
     public Guid Id { get; set; }
     public required string Email { get; set; }
     public required string RoleId { get; set; }
+    public required Role Role { get; set; }
     public required string FullName { get; set; }
     public string PasswordHash { get; set; } = null!;
     public string? Phone { get; set; }
 
-    public required Role Role { get; set; }
+    public override object GetId()
+    {
+        return Id;
+    }
 
     public List<Claim> GetClaims()
     {

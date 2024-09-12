@@ -15,6 +15,7 @@ public class GlobalExceptionHandler : IExceptionHandler
     public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
     {
         ProblemDetails details;
+
         if (exception is HttpResponseException)
         {
             details = ((HttpResponseException)exception).Details;
@@ -31,6 +32,7 @@ public class GlobalExceptionHandler : IExceptionHandler
             };
             logger.LogError(exception, exception.Message, exception.StackTrace);
         }
+
         httpContext.Response.StatusCode = details.Status ?? StatusCodes.Status500InternalServerError;
         await httpContext.Response.WriteAsJsonAsync(details);
 
