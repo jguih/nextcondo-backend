@@ -56,10 +56,10 @@ stages:
           - task: DotNetCoreCLI@2
             inputs:
               command: 'publish'
-              projects: App
               publishWebProjects: true
               arguments: '-c Release -o $(System.DefaultWorkingDirectory)/App/release /p:UseAppHost=false'
               zipAfterPublish: false
+              modifyOutputPath: false
           - task: PublishPipelineArtifact@1
             inputs:
               targetPath: '$(System.DefaultWorkingDirectory)/App/release'
