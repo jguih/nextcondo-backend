@@ -41,6 +41,15 @@ stages:
               command: "test"
               testRunTitle: "Unit and Integration Tests"
 
+  - stage: publish
+    dependsOn: test
+    jobs:
+      - jobs:
+        displayName: "Publish dotnetapp"
+        steps:
+          - script: |
+              dotnet ef migrations bundle -o ./release/bundle --force --no-build
+
   - stage: deploy
     dependsOn: test
     condition: startsWith(variables['Build.SourceBranch'], 'refs/tags/')

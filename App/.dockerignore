@@ -21,7 +21,6 @@
 **/obj
 **/secrets.dev.yaml
 **/values.dev.yaml
-**/release
 LICENSE
 README.md
 !**/.gitignore
@@ -29,3 +28,5 @@ README.md
 !.git/config
 !.git/packed-refs
 !.git/refs/heads/**
+appsettings.Development.json
+appsettings.Tests.json
