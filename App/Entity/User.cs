@@ -11,6 +11,8 @@ public class User : BaseEntity
     public required string FullName { get; set; }
     public string PasswordHash { get; set; } = null!;
     public string? Phone { get; set; }
+    public bool IsEmailVerified { get; set; }
+    public DateTimeOffset? EmailVerifiedAt { get; set; }
 
     public override object GetId()
     {

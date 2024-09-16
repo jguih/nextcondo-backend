@@ -4,7 +4,8 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using NextCondoApi;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
+using NextCondoApi.Features.Configuration;
 
 namespace IntegrationTests;
 
@@ -32,9 +33,10 @@ public class TestsWebApplicationFactory<TProgram>
         using (var scope = Services.CreateScope())
         {
             var provider = scope.ServiceProvider;
-            var configuration = provider.GetRequiredService<IConfiguration>();
+            var configuration = provider.GetRequiredService<IOptions<DbOptions>>();
             await DbUtils.CleanUpAsync(configuration);
         };
+        GC.SuppressFinalize(this);
         await base.DisposeAsync();
     }
 }

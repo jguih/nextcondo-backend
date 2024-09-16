@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using NextCondoApi.Entity;
+using NextCondoApi.Features.Configuration;
 using NextCondoApi.Services;
 using Npgsql;
 using Respawn;
@@ -29,12 +31,11 @@ public static class DbUtils
         user.PasswordHash = passwordHash;
 
         await users.AddAsync(user);
-        await users.SaveAsync();
 
         return user.Id;
     }
 
-    public static async Task CleanUpAsync(IConfiguration configuration)
+    public static async Task CleanUpAsync(IOptions<DbOptions> configuration)
     {
         var connectionString = NextCondoApiDbContext.GetConnectionString(configuration);
 

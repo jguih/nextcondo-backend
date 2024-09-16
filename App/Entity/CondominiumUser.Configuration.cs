@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace NextCondoApi.Entity;
 
-public class CondominiumUserTypeConfiguration : IEntityTypeConfiguration<CondominiumUser>
+public class CondominiumUserEntityTypeConfiguration : IEntityTypeConfiguration<CondominiumUser>
 {
     public void Configure(EntityTypeBuilder<CondominiumUser> builder)
     {

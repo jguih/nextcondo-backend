@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace NextCondoApi.Controllers;
+namespace NextCondoApi.Models.DTO;
 
 public class RegisterUserDTO
 {

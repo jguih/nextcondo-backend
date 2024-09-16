@@ -1,6 +1,6 @@
 ﻿using Bogus;
-using NextCondoApi.Controllers;
 using NextCondoApi.Entity;
+using NextCondoApi.Models.DTO;
 
 namespace TestFakes;
 
@@ -17,7 +17,9 @@ public static class FakeUsersFactory
         .RuleFor(o => o.UpdatedAt, f => DateTimeOffset.UtcNow)
         .RuleFor(o => o.Phone, f => f.Phone.PhoneNumber())
         .RuleFor(o => o.FullName, f => f.Name.FullName())
-        .RuleFor(o => o.PasswordHash, f => f.Random.Hash());
+        .RuleFor(o => o.PasswordHash, f => f.Random.Hash())
+        .RuleFor(o => o.IsEmailVerified, true)
+        .RuleFor(o => o.EmailVerifiedAt, DateTimeOffset.UtcNow);
 
     private static Faker<RegisterUserDetails> RegisterUserDetailsFaker { get; } = new Faker<RegisterUserDetails>()
         .RuleFor(o => o.Email, f => f.Internet.Email())

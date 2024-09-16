@@ -9,26 +9,34 @@ public class GenericRepository<TEntity>
 {
     protected NextCondoApiDbContext db;
     protected ILogger logger;
-    protected DbSet<TEntity> entitiesDb;
+    protected DbSet<TEntity> entities;
 
     public GenericRepository(NextCondoApiDbContext context, ILogger<GenericRepository<TEntity>> logger)
     {
         this.db = context;
         this.logger = logger;
-        this.entitiesDb = context.Set<TEntity>();
+        this.entities = context.Set<TEntity>();
     }
 
     public virtual async Task AddAsync(TEntity entity)
     {
-        await entitiesDb.AddAsync(entity);
+        await entities.AddAsync(entity);
+        await db.SaveChangesAsync();
+    }
+
+    public virtual async Task UpdateAsync(TEntity entity)
+    {
+        db.Entry(entity).State = EntityState.Modified;
+        await db.SaveChangesAsync();
     }
 
     public virtual async Task<bool> DeleteAsync(object id)
     {
-        var existing = await entitiesDb.FindAsync(id);
+        var existing = await entities.FindAsync(id);
         if (existing != null)
         {
-            entitiesDb.Remove(existing);
+            entities.Remove(existing);
+            await db.SaveChangesAsync();
             return true;
         }
         return false;
@@ -36,21 +44,19 @@ public class GenericRepository<TEntity>
 
     public virtual async Task<List<TEntity>> GetAllAsync()
     {
-        var entities = await entitiesDb.ToListAsync();
-        if (entities == null)
+        var all = await (from entity in entities
+                         select entity)
+                         .AsNoTracking()
+                         .ToListAsync();
+        if (all == null)
         {
             return [];
         }
-        return entities;
+        return all;
     }
 
     public virtual async Task<TEntity?> GetByIdAsync(object id)
     {
-        return await entitiesDb.FindAsync(id);
-    }
-
-    public virtual async Task<int> SaveAsync()
-    {
-        return await db.SaveChangesAsync();
+        return await entities.FindAsync(id);
     }
 }

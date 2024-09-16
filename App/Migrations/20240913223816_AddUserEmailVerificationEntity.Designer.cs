@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NextCondoApi.Entity;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace NextCondoApi.Migrations
 {
     [DbContext(typeof(NextCondoApiDbContext))]
-    partial class SimplifyCondoApiDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240913223816_AddUserEmailVerificationEntity")]
+    partial class AddUserEmailVerificationEntity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -50,7 +53,7 @@ namespace NextCondoApi.Migrations
 
                     b.HasIndex("OwnerId");
 
-                    b.ToTable("Condominiums");
+                    b.ToTable("Condominium");
                 });
 
             modelBuilder.Entity("NextCondoApi.Entity.CondominiumUser", b =>
@@ -74,7 +77,7 @@ namespace NextCondoApi.Migrations
 
                     b.HasIndex("CondominiumId");
 
-                    b.ToTable("CondominiumUsers");
+                    b.ToTable("CondominiumUser");
                 });
 
             modelBuilder.Entity("NextCondoApi.Entity.EmailVerificationCode", b =>
@@ -110,7 +113,7 @@ namespace NextCondoApi.Migrations
                     b.HasIndex("UserId")
                         .IsUnique();
 
-                    b.ToTable("EmailVerificationCodes");
+                    b.ToTable("EmailVerificationCode");
                 });
 
             modelBuilder.Entity("NextCondoApi.Entity.Role", b =>

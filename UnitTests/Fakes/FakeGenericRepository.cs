@@ -8,16 +8,29 @@ public class FakeGenericRepository<TEntity> : IGenericRepository<TEntity>
 {
     protected readonly List<TEntity> Entities = [];
 
-    public async Task AddAsync(TEntity entity)
+    public virtual async Task AddAsync(TEntity entity)
     {
         await Task.Delay(1);
         Entities.Add(entity);
     }
 
-    public async Task<bool> DeleteAsync(object id)
+    public virtual async Task UpdateAsync(TEntity entity)
     {
         await Task.Delay(1);
-        var existing = Entities.Find(e => e.GetId()?.Equals(id) ?? false);
+        for (int i = 0; i < Entities.Count; i++)
+        {
+            var item = Entities[i];
+            if (item.GetId().Equals(entity.GetId()))
+            {
+                Entities[i] = entity;
+            }
+        }
+    }
+
+    public virtual async Task<bool> DeleteAsync(object id)
+    {
+        await Task.Delay(1);
+        var existing = await GetByIdAsync(id);
         if (existing != null)
         {
             Entities.Remove(existing);
@@ -26,22 +39,15 @@ public class FakeGenericRepository<TEntity> : IGenericRepository<TEntity>
         return false;
     }
 
-    public async Task<List<TEntity>> GetAllAsync()
+    public virtual async Task<List<TEntity>> GetAllAsync()
     {
         await Task.Delay(1);
         return Entities;
     }
 
-    public async Task<TEntity?> GetByIdAsync(object id)
+    public virtual async Task<TEntity?> GetByIdAsync(object id)
     {
         await Task.Delay(1);
-        var existing = Entities.Find(e => e.GetId()?.Equals(id) ?? false);
-        return existing;
-    }
-
-    public async Task<int> SaveAsync()
-    {
-        await Task.Delay(1);
-        return 1;
+        throw new NotImplementedException();
     }
 }

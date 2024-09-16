@@ -1,5 +1,7 @@
 
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using NextCondoApi.Features.Configuration;
 using System.Text;
 
 namespace NextCondoApi.Entity;
@@ -8,22 +10,26 @@ public class NextCondoApiDbContext : DbContext
 {
     public NextCondoApiDbContext(
         DbContextOptions<NextCondoApiDbContext> options, 
-        IConfiguration configuration)
+        IOptions<DbOptions> dbConfig)
         : base(options)
     {
-        Configuration = configuration;
+        _dbConfig = dbConfig;
     }
 
-    protected IConfiguration Configuration { get; set; }
+    private readonly IOptions<DbOptions> _dbConfig;
     public DbSet<User> Users { get; set; }
     public DbSet<Role> Roles { get; set; }
+    public DbSet<Condominium> Condominiums { get; set; }
+    public DbSet<CondominiumUser> CondominiumUsers { get; set; }
+    public DbSet<EmailVerificationCode> EmailVerificationCodes { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         new UserEntityTypeConfiguration().Configure(modelBuilder.Entity<User>());
         new RoleEntityTypeConfiguration().Configure(modelBuilder.Entity<Role>());
         new CondominiumEntityTypeConfiguration().Configure(modelBuilder.Entity<Condominium>());
-        new CondominiumUserTypeConfiguration().Configure(modelBuilder.Entity<CondominiumUser>());
+        new CondominiumUserEntityTypeConfiguration().Configure(modelBuilder.Entity<CondominiumUser>());
+        new EmailVerificationCodeEntityTypeConfiguration().Configure(modelBuilder.Entity<EmailVerificationCode>());
         base.OnModelCreating(modelBuilder);
     }
 
@@ -31,7 +37,7 @@ public class NextCondoApiDbContext : DbContext
     {
         if (optionsBuilder.IsConfigured) return;
 
-        var ConnectionString = GetConnectionString(Configuration);
+        var ConnectionString = GetConnectionString(_dbConfig);
 
         optionsBuilder.UseNpgsql(ConnectionString, (options) =>
         {
@@ -44,12 +50,12 @@ public class NextCondoApiDbContext : DbContext
         base.OnConfiguring(optionsBuilder);
     }
 
-    public static string GetConnectionString(IConfiguration configuration)
+    public static string GetConnectionString(IOptions<DbOptions> dbConfig)
     {
-        var HOST = configuration.GetSection("DB_HOST").Get<string>();
-        var DATABASE = configuration.GetSection("DB_DATABASE").Get<string>();
-        var USER = configuration.GetSection("DB_USER").Get<string>();
-        var PASS = configuration.GetSection("DB_PASSWORD").Get<string>();
+        var HOST = dbConfig.Value.HOST;
+        var DATABASE = dbConfig.Value.DATABASE;
+        var USER = dbConfig.Value.USER;
+        var PASS = dbConfig.Value.PASSWORD;
         var ConnectionStringBuilder = new StringBuilder();
 
         var ConnectionString = ConnectionStringBuilder

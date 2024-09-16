@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NextCondoApi.Entity;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace NextCondoApi.Migrations
 {
     [DbContext(typeof(NextCondoApiDbContext))]
-    partial class SimplifyCondoApiDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240913114846_AddUserEmailVerification")]
+    partial class AddUserEmailVerification
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -50,7 +53,7 @@ namespace NextCondoApi.Migrations
 
                     b.HasIndex("OwnerId");
 
-                    b.ToTable("Condominiums");
+                    b.ToTable("Condominium");
                 });
 
             modelBuilder.Entity("NextCondoApi.Entity.CondominiumUser", b =>
@@ -74,43 +77,7 @@ namespace NextCondoApi.Migrations
 
                     b.HasIndex("CondominiumId");
 
-                    b.ToTable("CondominiumUsers");
-                });
-
-            modelBuilder.Entity("NextCondoApi.Entity.EmailVerificationCode", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Code")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTimeOffset?>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTimeOffset>("ExpirestAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTimeOffset?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId")
-                        .IsUnique();
-
-                    b.ToTable("EmailVerificationCodes");
+                    b.ToTable("CondominiumUser");
                 });
 
             modelBuilder.Entity("NextCondoApi.Entity.Role", b =>
@@ -217,17 +184,6 @@ namespace NextCondoApi.Migrations
                         .IsRequired();
 
                     b.Navigation("Condominium");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("NextCondoApi.Entity.EmailVerificationCode", b =>
-                {
-                    b.HasOne("NextCondoApi.Entity.User", "User")
-                        .WithOne()
-                        .HasForeignKey("NextCondoApi.Entity.EmailVerificationCode", "UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
 
                     b.Navigation("User");
                 });

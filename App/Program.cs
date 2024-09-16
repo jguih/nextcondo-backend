@@ -18,6 +18,8 @@ public class Program
         builder.AddAuth();
         builder.AddSwagger(configuration);
         builder.AddRepositories();
+        builder.AddRateLimitingPolicies();
+        builder.AddConfigurationOptions(configuration);
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.ConfigureHttpJsonOptions(opt =>
         {
@@ -43,6 +45,7 @@ public class Program
         app.UseExceptionHandler();
         app.UseAuthentication();
         app.UseAuthorization();
+        app.UseRateLimiter();
         app.MapControllers();
         app.Run();
     }

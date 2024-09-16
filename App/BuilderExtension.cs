@@ -2,10 +2,14 @@
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.OpenApi.Models;
 using NextCondoApi.Entity;
+using NextCondoApi.Features.Configuration;
 using NextCondoApi.Services;
 using NextCondoApi.Services.Auth;
+using NextCondoApi.Services.SMTP;
+using System.Threading.RateLimiting;
 
 namespace NextCondoApi;
 
@@ -81,7 +85,42 @@ public static class BuilderExtension
         builder.Services.AddScoped<IUsersRepository, UsersRepository>();
         builder.Services.AddScoped<IRolesRepository, RolesRepository>();
         builder.Services.AddScoped<ICondominiumsRepository, CondominiumsRepository>();
+        builder.Services.AddScoped<IEmailVerificationCodeRepository, EmailVerificationCodeRepository>();
         builder.Services.AddScoped<IAuthServiceHelper, AuthServiceHelper>();
         builder.Services.AddScoped<IAuthService, AuthService>();
+        builder.Services.AddScoped<ISMTPService, SMTPService>();
+    }
+
+    public static void AddRateLimitingPolicies(this WebApplicationBuilder builder)
+    {
+        builder.Services.AddRateLimiter(_ => _
+            .AddFixedWindowLimiter(policyName: "sendEmailVerificationCode", options =>
+            {
+                options.PermitLimit = 1;
+                options.Window = TimeSpan.FromMinutes(1);
+                options.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+                options.QueueLimit = 0;
+            }));
+    }
+
+    public static void AddConfigurationOptions(this WebApplicationBuilder builder, IConfiguration configuration)
+    {
+        builder.Services
+            .AddOptions<DbOptions>()
+            .Bind(configuration.GetRequiredSection(DbOptions.DB))
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        builder.Services
+            .AddOptions<SMTPOptions>()
+            .Bind(configuration.GetRequiredSection(SMTPOptions.SMTP))
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        builder.Services
+            .AddOptions<SystemOptions>()
+            .Bind(configuration.GetRequiredSection(SystemOptions.SYSTEM))
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
     }
 }

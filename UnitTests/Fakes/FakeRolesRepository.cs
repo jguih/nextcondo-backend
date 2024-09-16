@@ -25,4 +25,11 @@ public class FakeRolesRepository : FakeGenericRepository<Role>, IRolesRepository
         ArgumentNullException.ThrowIfNull(defaultRole, nameof(defaultRole));
         return defaultRole;
     }
+
+    public override async Task<Role?> GetByIdAsync(object id)
+    {
+        await Task.Delay(1);
+        var role = Entities.Find(e => e.Name.Equals(id));
+        return role;
+    }
 }

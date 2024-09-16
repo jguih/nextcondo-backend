@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using NextCondoApi.Entity;
+using NextCondoApi.Features.Configuration;
 using NextCondoApi.Models.DTO;
 using System.Net.Mime;
 
@@ -9,13 +11,13 @@ namespace NextCondoApi.Controllers
     [ApiController]
     public class PublicController : ControllerBase
     {
-        private readonly NextCondoApiDbContext db;
-        private readonly IConfiguration configuration;
+        private readonly NextCondoApiDbContext _db;
+        private readonly IOptions<SystemOptions> _systemOptions;
 
-        public PublicController(NextCondoApiDbContext db, IConfiguration configuration)
+        public PublicController(NextCondoApiDbContext db, IOptions<SystemOptions> systemOptions)
         {
-            this.db = db;
-            this.configuration = configuration;
+            _db = db;
+            _systemOptions = systemOptions;
         }
 
         [HttpGet("status")]
@@ -29,7 +31,7 @@ namespace NextCondoApi.Controllers
             MediaTypeNames.Application.ProblemJson)]
         public IActionResult GetStatus()
         {
-            if (db.Database.CanConnect())
+            if (_db.Database.CanConnect())
                 return Ok(new GenericResponseDTO() { Status = "Ok" });
             return Problem(
                 title: "Connection error",
@@ -49,7 +51,7 @@ namespace NextCondoApi.Controllers
             MediaTypeNames.Application.ProblemJson)]
         public ActionResult<string> GetPublicUrl()
         {
-            var publicURL = configuration.GetSection("PUBLIC_URL").Get<string>();
+            var publicURL = _systemOptions.Value.PUBLIC_URL;
 
             return publicURL == null ?
                 Problem(

@@ -29,6 +29,13 @@ public class UserEntityTypeConfiguration : IEntityTypeConfiguration<User>
             .HasMaxLength(30);
 
         builder
+            .Property(user => user.IsEmailVerified)
+            .HasDefaultValue(false);
+
+        builder
+            .Property(user => user.EmailVerifiedAt);
+
+        builder
           .HasOne(user => user.Role)
           .WithMany()
           .HasForeignKey(user => user.RoleId)

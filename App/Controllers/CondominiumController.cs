@@ -66,7 +66,6 @@ public class CondominiumController : ControllerBase
         newCondominium.Members.Add(newMember);
 
         await _condominiumsRepository.AddAsync(newCondominium);
-        await _condominiumsRepository.SaveAsync();
 
         return CreatedAtAction(
             nameof(GetById), 
