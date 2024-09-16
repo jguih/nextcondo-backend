@@ -12,7 +12,6 @@ build_migrations_bundle() {
     -o ./App/release/bundle \
     --force \
     --no-build \
-    --self-contained \
     -r linux-x64 \
     --project App
 }
