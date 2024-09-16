@@ -8,10 +8,10 @@ public class DbOptions
 
     [Required(AllowEmptyStrings = false)]
     public string HOST { get; set; } = String.Empty;
-    [Required]
+    [Required(AllowEmptyStrings = false)]
     public string DATABASE { get; set; } = String.Empty;
-    [Required]
+    [Required(AllowEmptyStrings = false)]
     public string USER { get; set; } = String.Empty;
-    [Required]
+    [Required(AllowEmptyStrings = false)]
     public string PASSWORD { get; set; } = String.Empty;
 }

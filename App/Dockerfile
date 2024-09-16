@@ -24,6 +24,8 @@
 
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS release
 WORKDIR /app
-COPY ./release ./
+RUN addgroup --system --gid 1001 nextcondoapi
+RUN adduser --system --uid 1001 nextcondoapi
+COPY --chown=nextcondoapi:nextcondoapi ./release ./
 EXPOSE 8080
 ENTRYPOINT ["dotnet", "App.dll"]

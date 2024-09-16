@@ -21,8 +21,14 @@ publish_app() {
 }
 
 build_docker_image() {
-  cd "App"
-  docker build -t thejguih/nextcondoapi:latest .
+  docker build -t thejguih/nextcondoapi:latest ./App/.
+}
+
+remove_release_folder() {
+  if [ -d "App/release" ]
+  then
+    rm -r App/release
+  fi;
 }
 
 finish() {
@@ -43,7 +49,7 @@ cd "${root_path}"
 
 bash Scripts/migrate.sh
 run_tests
-rm -r App/release
+remove_release_folder
 build_migrations_bundle
 publish_app
 build_docker_image
