@@ -51,7 +51,6 @@ stages:
               dotnet ef migrations bundle \
                 -o $(System.DefaultWorkingDirectory)/App/release/bundle \
                 --force \
-                --no-build \
                 -r linux-x64 \
                 --project App
           - task: DotNetCoreCLI@2
