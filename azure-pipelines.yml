@@ -53,6 +53,7 @@ stages:
                 --force \
                 -r linux-x64 \
                 --project App
+            displayName: "Build migrations bundle"
           - task: DotNetCoreCLI@2
             inputs:
               command: 'publish'
