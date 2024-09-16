@@ -27,7 +27,7 @@ stages:
         displayName: "Apply migrations"
         steps:
           - script: |
-              dotnet ef database update --project App --no-build
+              dotnet ef database update --project App
             displayName: "Applying migrations to test database"
 
   - stage: test
