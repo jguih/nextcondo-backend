@@ -7,6 +7,20 @@ run_tests() {
   dotnet test
 }
 
+build_migrations_bundle() {
+  dotnet ef migrations bundle \
+    -o ./App/release/bundle \
+    --force \
+    --no-build \
+    --self-contained \
+    -r linux-x64 \
+    --project App
+}
+
+publish_app() {
+  dotnet publish App -c Release -o ./App/release /p:UseAppHost=false
+}
+
 build_docker_image() {
   cd "App"
   docker build -t thejguih/nextcondoapi:latest .
@@ -30,4 +44,7 @@ cd "${root_path}"
 
 bash Scripts/migrate.sh
 run_tests
+rm -r App/release
+build_migrations_bundle
+publish_app
 build_docker_image

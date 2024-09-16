@@ -9,21 +9,21 @@
 #WORKDIR "/src/."
 #RUN dotnet build "./simplify-condo-api.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS publish
+# FROM mcr.microsoft.com/dotnet/sdk:8.0 AS publish
 
-RUN dotnet tool install --global dotnet-ef
-ENV PATH="$PATH:/root/.dotnet/tools"
+# RUN dotnet tool install --global dotnet-ef
+# ENV PATH="$PATH:/root/.dotnet/tools"
 
-WORKDIR /app
+# WORKDIR /app
 
-COPY . .
+# COPY . .
 
-RUN dotnet publish -c Release -o ./release /p:UseAppHost=false
-RUN dotnet ef migrations bundle -o ./release/bundle
-RUN chmod +x ./release/bundle
+# RUN dotnet publish -c Release -o ./release /p:UseAppHost=false
+# RUN dotnet ef migrations bundle -o ./release/bundle
+# RUN chmod +x ./release/bundle
 
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS release
 WORKDIR /app
-COPY --from=publish ./app/release ./
+COPY ./release ./
 EXPOSE 8080
 ENTRYPOINT ["dotnet", "App.dll"]
