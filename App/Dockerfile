@@ -27,5 +27,6 @@ WORKDIR /app
 RUN addgroup --system --gid 1001 nextcondoapi
 RUN adduser --system --uid 1001 nextcondoapi
 COPY --chown=nextcondoapi:nextcondoapi ./release ./
+RUN chmod +x ./bundle
 EXPOSE 8080
 ENTRYPOINT ["dotnet", "App.dll"]
