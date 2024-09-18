@@ -1,6 +1,5 @@
 using IntegrationTests.Utils;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using NextCondoApi;

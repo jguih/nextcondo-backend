@@ -1,5 +1,6 @@
 ﻿
 using NextCondoApi.Entity;
+using NextCondoApi.Models.DTO;
 using NextCondoApi.Services;
 
 namespace UnitTests.Fakes;
@@ -20,5 +21,10 @@ internal class FakeUsersRepository : FakeGenericRepository<User>, IUsersReposito
         await Task.Delay(1);
         var user = Entities.Find(e => e.Id.Equals(id));
         return user;
+    }
+
+    public Task<UserDTO?> GetDtoByUserIdAsync(Guid userId)
+    {
+        throw new NotImplementedException();
     }
 }

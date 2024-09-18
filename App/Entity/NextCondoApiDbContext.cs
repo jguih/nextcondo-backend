@@ -22,6 +22,7 @@ public class NextCondoApiDbContext : DbContext
     public DbSet<Condominium> Condominiums { get; set; }
     public DbSet<CondominiumUser> CondominiumUsers { get; set; }
     public DbSet<EmailVerificationCode> EmailVerificationCodes { get; set; }
+    public DbSet<CurrentCondominium> CurrentCondominium { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -30,6 +31,7 @@ public class NextCondoApiDbContext : DbContext
         new CondominiumEntityTypeConfiguration().Configure(modelBuilder.Entity<Condominium>());
         new CondominiumUserEntityTypeConfiguration().Configure(modelBuilder.Entity<CondominiumUser>());
         new EmailVerificationCodeEntityTypeConfiguration().Configure(modelBuilder.Entity<EmailVerificationCode>());
+        new CurrentCondominiumEntityTypeConfiguration().Configure(modelBuilder.Entity<CurrentCondominium>());
         base.OnModelCreating(modelBuilder);
     }
 

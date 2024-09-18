@@ -5,9 +5,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.OpenApi.Models;
 using NextCondoApi.Entity;
+using NextCondoApi.Features.AuthFeature.Services;
+using NextCondoApi.Features.CondominiumFeature.Services;
 using NextCondoApi.Features.Configuration;
 using NextCondoApi.Services;
-using NextCondoApi.Services.Auth;
 using NextCondoApi.Services.SMTP;
 using System.Threading.RateLimiting;
 
@@ -48,7 +49,8 @@ public static class BuilderExtension
 
     public static void AddSwagger(this WebApplicationBuilder builder, IConfiguration configuration)
     {
-        var publicURL = configuration.GetSection("PUBLIC_URL").Get<string>();
+        SystemOptions systemOptions = new();
+        configuration.GetRequiredSection(SystemOptions.SYSTEM).Bind(systemOptions) ;
 
         builder.Services.AddSwaggerGen(c =>
         {
@@ -57,11 +59,11 @@ public static class BuilderExtension
                 Url = "http://localhost:8080",
                 Description = "Localhost"
             });
-            if (!string.IsNullOrEmpty(publicURL))
+            if (!string.IsNullOrEmpty(systemOptions.PUBLIC_URL))
             {
                 c.AddServer(new OpenApiServer()
                 {
-                    Url = publicURL,
+                    Url = systemOptions.PUBLIC_URL,
                     Description = "Public address"
                 });
             }
@@ -82,13 +84,18 @@ public static class BuilderExtension
         builder.Services.AddHttpContextAccessor();
         builder.Services.AddSingleton<IPasswordHasher<User>, PasswordHasher<User>>();
         builder.Services.AddDataProtection();
+
         builder.Services.AddScoped<IUsersRepository, UsersRepository>();
         builder.Services.AddScoped<IRolesRepository, RolesRepository>();
         builder.Services.AddScoped<ICondominiumsRepository, CondominiumsRepository>();
         builder.Services.AddScoped<IEmailVerificationCodeRepository, EmailVerificationCodeRepository>();
+        builder.Services.AddScoped<ICurrentCondominiumRepository, CurrentCondominiumRepository>();
+
         builder.Services.AddScoped<IAuthServiceHelper, AuthServiceHelper>();
         builder.Services.AddScoped<IAuthService, AuthService>();
         builder.Services.AddScoped<ISMTPService, SMTPService>();
+        builder.Services.AddScoped(typeof (CondominiumService));
+        builder.Services.AddScoped<IEmailVerificationService, EmailVerificationService>();
     }
 
     public static void AddRateLimitingPolicies(this WebApplicationBuilder builder)

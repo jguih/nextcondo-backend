@@ -10,8 +10,6 @@
 /IntegrationTests/bin
 /IntegrationTests/obj
 /IntegrationTests/TestResults
-appsettings.json
-appsettings.*.json
 /.editorconfig
 /TestFakes/bin
 /TestFakes/obj

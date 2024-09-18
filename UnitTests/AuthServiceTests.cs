@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Moq;
 using NextCondoApi.Entity;
-using NextCondoApi.Services.Auth;
+using NextCondoApi.Features.AuthFeature.Services;
 using TestFakes;
 using UnitTests.Fakes;
 
@@ -14,11 +14,10 @@ public class AuthServiceTests : IAsyncLifetime
 {
     private FakeUsersRepository UsersRepository { get; set; } = null!;
     private FakeRolesRepository RolesRepository { get; set; } = null!;
-    private FakeEmailVerificationCodeRepository EmailVerificationCodeRepository { get; set; } = null!;
     private FakeAuthServiceHelper AuthServiceHelper { get; set; } = null!;
-    private FakeSMTPService SMTPService { get; set; } = null!;
     private Mock<IPasswordHasher<User>> Hasher { get; set; } = null!;
     private Mock<IDataProtectionProvider> DataProtectionProvider { get; set; } = null!;
+    private Mock<IEmailVerificationService> EmailVerificationServiceMock { get; set; } = null!;
     private AuthService AuthService { get; set; } = null!;
     private Faker Faker { get; set; }
 
@@ -32,11 +31,10 @@ public class AuthServiceTests : IAsyncLifetime
         var servicesMockFactory = new ServicesMockFactory();
         RolesRepository = await FakeRolesRepository.Create();
         UsersRepository = new FakeUsersRepository();
-        EmailVerificationCodeRepository = new FakeEmailVerificationCodeRepository();
         AuthServiceHelper = new FakeAuthServiceHelper();
-        SMTPService = new FakeSMTPService();
         Hasher = servicesMockFactory.GetUserPasswordHasher();
         DataProtectionProvider = servicesMockFactory.GetDataProtectionProvider();
+        EmailVerificationServiceMock = new Mock<IEmailVerificationService>();
 
         AuthService = new AuthService(
                 UsersRepository,
@@ -44,8 +42,7 @@ public class AuthServiceTests : IAsyncLifetime
                 Hasher.Object,
                 DataProtectionProvider.Object,
                 AuthServiceHelper,
-                SMTPService,
-                EmailVerificationCodeRepository
+                EmailVerificationServiceMock.Object
             );
     }
 
@@ -91,11 +88,11 @@ public class AuthServiceTests : IAsyncLifetime
                 phone: fakeUser.Phone,
                 scheme: "local"
             );
-        var allUsers = await UsersRepository.GetAllAsync();
+        var all = await UsersRepository.GetAllAsync();
 
         // Assert
+        Assert.Single(all);
         Assert.True(result);
-        Assert.Single(allUsers);
     }
 
     [Fact]
@@ -143,19 +140,25 @@ public class AuthServiceTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task EmailVerification_FailsIfUserDoesNotExist()
+    public async Task SendVerificationEmail()
     {
         // Arrange
         var user = FakeUsersFactory.GetFakeUser();
-        await AuthService.SendEmailVerificationCodeAsync(user.Id, user.FullName, user.Email);
-        var code = SMTPService.GetByEmail(user.Email)?.Code;
+        var code = Faker.Random.AlphaNumeric(8);
+        EmailVerificationServiceMock
+            .Setup(m => m.CreateCodeAsync(user.Id, user.Email))
+            .Returns(Task.FromResult(code));
 
         // Act
-        Assert.NotNull(code);
-        var result = await AuthService.VerifyEmailVerificationCodeAsync(code, user.Id);
+        await AuthService.SendEmailVerificationCodeAsync(user.Id, user.FullName, user.Email);
 
         // Assert
-        Assert.False(result);
+        EmailVerificationServiceMock
+            .Verify(m => m.SendVerificationEmail(
+                It.Is<string>(ms => ms.Equals(code)),
+                It.Is<string>(ms => ms.Equals(user.FullName)),
+                It.Is<string>(ms => ms.Equals(user.Email))
+            ));
     }
 
     [Fact]

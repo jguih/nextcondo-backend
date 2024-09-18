@@ -1,49 +1,40 @@
 using Bogus;
 using IntegrationTests.Utils;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json;
 using NextCondoApi;
 using NextCondoApi.Entity;
-using NextCondoApi.Services;
+using NextCondoApi.Models.DTO;
 using System.Net;
 using TestFakes;
 
 namespace IntegrationTests;
 
 [Collection(nameof(TestsWebApplicationFactory<Program>))]
-public class CondominiumTests : IClassFixture<TestsWebApplicationFactory<Program>>, IDisposable
+public class CondominiumTests : IClassFixture<TestsWebApplicationFactory<Program>>
 {
     private readonly TestsWebApplicationFactory<Program> _factory;
-    private HttpClient _httpClient = null!;
     private readonly Faker _faker;
 
     public CondominiumTests(TestsWebApplicationFactory<Program> factory)
     {
         _factory = factory;
         _faker = new Faker("pt_BR");
-        _httpClient = _factory.CreateClient();
-    }
-
-    public void Dispose()
-    {
-        _httpClient.Dispose();
-        GC.SuppressFinalize(this);
     }
 
     [Fact]
     public async Task FailToAdd_WhenUserNotAuthenticated()
     {
         // Arrange
+        var client = _factory.CreateClient();
         using MultipartFormDataContent newCondoDetails = new()
         {
             { new StringContent(_faker.Company.CompanyName()), "name" },
             { new StringContent(_faker.Lorem.Paragraph(120)), "description" },
-            { new StringContent(_faker.Random.Guid().ToString()), "ownerId" },
             { new StringContent(CondominiumUserRelationshipType.Manager.ToString()), "relationshipType" }
         };
 
         // Act
-        var result = await _httpClient.PostAsync("/Condominium", newCondoDetails);
+        var result = await client.PostAsync("/Condominium", newCondoDetails);
 
         // Assert
         Assert.Equal(HttpStatusCode.Unauthorized, result.StatusCode);
@@ -53,30 +44,87 @@ public class CondominiumTests : IClassFixture<TestsWebApplicationFactory<Program
     public async Task AddNewCondominium()
     {
         // Arrange
-        RegisterUserDetails fakeUser = FakeUsersFactory.GetFakeUserDetails();
-        Guid fakeUserId;
-        using (var scope = _factory.Services.CreateScope())
-        {
-            var provider = scope.ServiceProvider;
-            var users = provider.GetRequiredService<IUsersRepository>();
-            var roles = provider.GetRequiredService<IRolesRepository>();
-            var hasher = provider.GetRequiredService<IPasswordHasher<User>>();
-            fakeUserId = await DbUtils.AddTestUserAsync(fakeUser, users, roles, hasher);
-        };
+        var userDetails = FakeUsersFactory.GetFakeUserDetails();
+        var authenticatedClient = await _factory.CreateAuthenticatedHttpClientForUserAsync(userDetails);
+        var client = authenticatedClient.client;
+        var testUser = authenticatedClient.user;
+        var newCondoName = _faker.Company.CompanyName();
+        var newCondoDescription = _faker.Lorem.Paragraph(3);
+        var newCondoRelationshipType = CondominiumUserRelationshipType.Manager.ToString();
+
         using MultipartFormDataContent newCondoDetails = new()
         {
-            { new StringContent(_faker.Company.CompanyName()), "name" },
-            { new StringContent(_faker.Lorem.Paragraph(3)), "description" },
-            { new StringContent(fakeUserId.ToString()), "ownerId" },
-            { new StringContent(CondominiumUserRelationshipType.Manager.ToString()), "relationshipType" }
+            { new StringContent(newCondoName), "name" },
+            { new StringContent(newCondoDescription), "description" },
+            { new StringContent(newCondoRelationshipType), "relationshipType" }
         };
 
         // Act
-        var loginResult = await _httpClient.LoginAsync(fakeUser.Email, fakeUser.Password);
-        var addCondoResult = await _httpClient.PostAsync("/Condominium", newCondoDetails);
+        var addCondoResult = await client.PostAsync("/Condominium", newCondoDetails);
+        var getMyCondoResult = await client.GetAsync("/Condominium/mine");
+        var getMyCondoResultBody = await getMyCondoResult.Content.ReadAsStringAsync();
+        var myCondos = JsonConvert.DeserializeObject<List<CondominiumDTO>>(getMyCondoResultBody);
+        var created = myCondos?.Find(condo => condo.Owner.Id.Equals(testUser.Id));
+        var userAsMember = created?.Members.First(m => m.Id.Equals(testUser.Id));
 
         // Assert
-        loginResult.EnsureSuccessStatusCode();
-        Assert.Equal(HttpStatusCode.Created, addCondoResult.StatusCode);
+        addCondoResult.EnsureSuccessStatusCode();
+        getMyCondoResult.EnsureSuccessStatusCode();
+        Assert.Contains("application/json", getMyCondoResult.Content.Headers.ContentType?.ToString());
+        Assert.NotNull(created);
+        Assert.Equal(newCondoName, created.Name);
+        Assert.Equal(newCondoDescription, created.Description);
+        Assert.NotNull(userAsMember);
+        Assert.Equal("Manager", userAsMember.RelationshipType);
+    }
+
+    [Fact]
+    public async Task GetCurrent_Returns204_WhenUserHasNoCondominiums()
+    {
+        // Arrange
+        var userDetails = FakeUsersFactory.GetFakeUserDetails();
+        var authenticatedClient = await _factory.CreateAuthenticatedHttpClientForUserAsync(userDetails);
+        var client = authenticatedClient.client;
+
+        // Act
+        var result = await client.GetAsync("/Condominium/mine/current");
+
+        // Assert
+        result.EnsureSuccessStatusCode();
+        Assert.Equal(HttpStatusCode.NoContent, result.StatusCode);
+    }
+
+    [Fact]
+    public async Task GetCurrent_ReturnsCurrentCondominium_IfUserHasCondominiums()
+    {
+        // Arrange
+        var userDetails = FakeUsersFactory.GetFakeUserDetails();
+        var authenticatedClient = await _factory.CreateAuthenticatedHttpClientForUserAsync(userDetails);
+        var client = authenticatedClient.client;
+        var testUser = authenticatedClient.user;
+        var newCondoName = _faker.Company.CompanyName();
+        var newCondoDescription = _faker.Lorem.Paragraph(3);
+        var newCondoRelationshipType = CondominiumUserRelationshipType.Manager.ToString();
+
+        using MultipartFormDataContent newCondoDetails = new()
+        {
+            { new StringContent(newCondoName), "name" },
+            { new StringContent(newCondoDescription), "description" },
+            { new StringContent(newCondoRelationshipType), "relationshipType" }
+        };
+
+        // Act
+        var addCondoResult = await client.PostAsync("/Condominium", newCondoDetails);
+        var currentResult = await client.GetAsync("/Condominium/mine/current");
+        var currentResultBody = await currentResult.Content.ReadAsStringAsync();
+        var current = JsonConvert.DeserializeObject<CondominiumDTO>(currentResultBody);
+
+        // Assert
+        addCondoResult.EnsureSuccessStatusCode();
+        currentResult.EnsureSuccessStatusCode();
+        Assert.NotNull(current);
+        Assert.Equal(newCondoName, current.Name);
+        Assert.Equal(newCondoDescription, current.Description);
+        Assert.Equal(testUser.Id, current.Owner.Id);
     }
 }

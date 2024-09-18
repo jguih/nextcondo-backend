@@ -1,11 +1,12 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using NextCondoApi.Features.AuthFeature.Models;
+using NextCondoApi.Features.AuthFeature.Services;
 using NextCondoApi.Models.DTO;
-using NextCondoApi.Services;
-using NextCondoApi.Services.Auth;
 using NextCondoApi.Utils.ClaimsPrincipalExtension;
 using System.Net.Mime;
+using System.Security.Claims;
 
 namespace NextCondoApi.Controllers;
 
@@ -14,24 +15,10 @@ namespace NextCondoApi.Controllers;
 public class AuthController : ControllerBase
 {
     private readonly IAuthService auth;
-    private readonly IUsersRepository usersRepository;
 
-    public AuthController(IAuthService auth, IUsersRepository usersRepository)
+    public AuthController(IAuthService auth)
     {
         this.auth = auth;
-        this.usersRepository = usersRepository;
-    }
-
-    [Authorize]
-    [HttpGet("claims")]
-    public IActionResult GetClaims()
-    {
-        Dictionary<string, string> claimsList = new();
-        foreach (var claim in HttpContext.User.Claims)
-        {
-            claimsList.Add(claim.Type, claim.Value);
-        }
-        return Ok(claimsList.ToList());
     }
 
     [HttpPost("login")]
@@ -115,19 +102,6 @@ public class AuthController : ControllerBase
         MediaTypeNames.Application.ProblemJson)]
     public async Task<IActionResult> VerifyEmailAsync(string content)
     {
-        var identity = User.GetIdentity();
-        var user = await usersRepository.GetByIdAsync(identity);
-
-        if (user is null)
-        {
-            return Problem(
-                title: "User not found",
-                detail: "User not found",
-                statusCode: StatusCodes.Status400BadRequest,
-                type: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400"
-            );
-        }
-
         var result = await auth.VerifyEmailVerificationCodeAsync(content, User.GetIdentity());
 
         if (!result)
@@ -149,37 +123,14 @@ public class AuthController : ControllerBase
         typeof(GenericResponseDTO),
         StatusCodes.Status200OK,
         MediaTypeNames.Application.Json)]
-    [ProducesResponseType(
-        typeof(ProblemDetails),
-        StatusCodes.Status400BadRequest,
-        MediaTypeNames.Application.ProblemJson)]
     [EnableRateLimiting("sendEmailVerificationCode")]
     public async Task<IActionResult> SendEmailVerificationCodeAsync()
     {
         var identity = User.GetIdentity();
-        var user = await usersRepository.GetByIdAsync(identity);
+        var name = User.Claims.First(c => c.Type == ClaimTypes.Name).Value;
+        var email = User.Claims.First(c => c.Type == ClaimTypes.Email).Value;
 
-        if (user is null)
-        {
-            return Problem(
-                title: "User not found",
-                detail: "User not found",
-                statusCode: StatusCodes.Status400BadRequest,
-                type: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400"
-            );
-        }
-
-        var result = await auth.SendEmailVerificationCodeAsync(user.Id, user.FullName, user.Email);
-
-        if (!result)
-        {
-            return Problem(
-                title: "Failed to send email verification code",
-                detail: "Failed to send email verification code",
-                statusCode: StatusCodes.Status400BadRequest,
-                type: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400"
-            );
-        }
+        await auth.SendEmailVerificationCodeAsync(identity, name, email);
 
         return Ok(new GenericResponseDTO() { Status = "Ok" });
     }

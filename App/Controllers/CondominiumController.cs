@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using NextCondoApi.Entity;
+using NextCondoApi.Features.CondominiumFeature.Services;
 using NextCondoApi.Models.DTO;
-using NextCondoApi.Services;
 using NextCondoApi.Utils.ClaimsPrincipalExtension;
 using System.Net.Mime;
 
@@ -18,14 +18,17 @@ namespace NextCondoApi.Controllers;
 public class CondominiumController : ControllerBase
 {
     private readonly ICondominiumsRepository _condominiumsRepository;
-    private readonly IUsersRepository _usersRepository;
+    private readonly ICurrentCondominiumRepository _currentCondominiumRepository;
+    private readonly CondominiumService _condominiumService;
 
     public CondominiumController(
         ICondominiumsRepository condominiumRepository,
-        IUsersRepository usersRepository)
+        ICurrentCondominiumRepository currentCondominiumRepository,
+        CondominiumService condominiumService)
     {
         _condominiumsRepository = condominiumRepository;
-        _usersRepository = usersRepository;
+        _currentCondominiumRepository = currentCondominiumRepository;
+        _condominiumService = condominiumService;
     }
 
     [HttpPost]
@@ -34,43 +37,27 @@ public class CondominiumController : ControllerBase
     [ProducesErrorResponseType(typeof(ProblemDetails))]
     public async Task<IActionResult> AddAsync([FromForm] AddCondominiumDTO data)
     {
-        var owner = await _usersRepository.GetByIdAsync(data.OwnerId);
-
-        if (owner == null)
-        {
-            return Problem(
-                title: "Owner not found",
-                detail: "Could not find owner using provided Id",
-                type: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404",
-                statusCode: StatusCodes.Status404NotFound
-            );
-        }
+        var identity = User.GetIdentity();
 
         Condominium newCondominium = new()
         {
             Name = data.Name,
             Description = data.Description,
-            OwnerId = data.OwnerId,
-            Owner = owner,
+            OwnerId = identity,
         };
 
         CondominiumUser newMember = new()
         {
-            Condominium = newCondominium,
             CondominiumId = newCondominium.Id,
             RelationshipType = data.RelationshipType,
-            User = owner,
-            UserId = owner.Id,
+            UserId = identity,
         };
 
         newCondominium.Members.Add(newMember);
 
         await _condominiumsRepository.AddAsync(newCondominium);
 
-        return CreatedAtAction(
-            nameof(GetById), 
-            new { Id = newCondominium.Id }, 
-            CondominiumDTO.FromCondominium(newCondominium));
+        return Ok();
     }
 
     [HttpGet("mine")]
@@ -81,33 +68,26 @@ public class CondominiumController : ControllerBase
     public async Task<IActionResult> GetMineAsync()
     {
         var identity = User.GetIdentity();
-        List<Condominium> myCondos = await _condominiumsRepository.GetByOwnerIdAsync(identity);
-        List<CondominiumDTO> myCondosDtos =
-            (from condominium in myCondos
-             select CondominiumDTO.FromCondominium(condominium))
-             .ToList();
-
-        return Ok(myCondosDtos);
+        var userCondominiums = await _condominiumsRepository.GetDtoListByUserIdAsync(identity);
+        return Ok(userCondominiums);
     }
 
-    [HttpGet("{Id}")]
+    [HttpGet("mine/current")]
     [ProducesResponseType(
         typeof(CondominiumDTO),
         StatusCodes.Status200OK,
         MediaTypeNames.Application.Json)]
-    [ProducesResponseType(
-        typeof(ProblemDetails),
-        StatusCodes.Status404NotFound,
-        MediaTypeNames.Application.ProblemJson)]
-    public async Task<IActionResult> GetById(Guid Id)
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public async Task<IActionResult> GetMineCurrentAsync()
     {
-        Condominium? condo = await _condominiumsRepository.GetByIdAsync(Id);
-        return condo is not null ? Ok(CondominiumDTO.FromCondominium(condo)) : 
-            Problem(
-                title: "Condominium not found",
-                detail: "Could not find condominium using provided Id",
-                type: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404",
-                statusCode: StatusCodes.Status404NotFound
-            );
+        var identity = User.GetIdentity();
+        var current = await _condominiumService.GetCurrentAsync(identity);
+
+        if (current is not null)
+        {
+            return Ok(current);
+        }
+
+        return NoContent();
     }
 }

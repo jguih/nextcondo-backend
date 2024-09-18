@@ -30,11 +30,15 @@ public class CondominiumEntityTypeConfiguration : IEntityTypeConfiguration<Condo
             .IsRequired();
 
         builder
-            .Navigation(condo => condo.Owner)
-            .AutoInclude();
+            .HasMany(condo => condo.Members)
+            .WithOne(condoUser => condoUser.Condominium)
+            .HasForeignKey(condoUser => condoUser.CondominiumId);
 
         builder
-            .Navigation(condo => condo.Members)
-            .AutoInclude();
+            .Navigation(condo => condo.Owner)
+            .IsRequired();
+
+        builder
+            .Navigation(condo => condo.Members);
     }
 }

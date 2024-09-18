@@ -1,6 +1,6 @@
 ﻿using Bogus;
 using NextCondoApi.Entity;
-using NextCondoApi.Models.DTO;
+using NextCondoApi.Features.AuthFeature.Models;
 
 namespace TestFakes;
 

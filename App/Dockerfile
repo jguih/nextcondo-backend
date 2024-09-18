@@ -29,4 +29,5 @@ RUN adduser --system --uid 1001 nextcondoapi
 COPY --chown=nextcondoapi:nextcondoapi ./release ./
 RUN chmod +x ./bundle
 EXPOSE 8080
+ENV ASPNETCORE_ENVIRONMENT="Production"
 ENTRYPOINT ["dotnet", "App.dll"]

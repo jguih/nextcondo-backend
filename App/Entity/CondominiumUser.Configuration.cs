@@ -13,19 +13,21 @@ public class CondominiumUserEntityTypeConfiguration : IEntityTypeConfiguration<C
         builder
             .HasOne(condoUser => condoUser.User)
             .WithMany()
-            .HasForeignKey(condoUser => condoUser.UserId);
+            .HasForeignKey(condoUser => condoUser.UserId)
+            .IsRequired();
 
         builder
             .HasOne(condoUser => condoUser.Condominium)
             .WithMany(condo => condo.Members)
-            .HasForeignKey(condoUser => condoUser.CondominiumId);
+            .HasForeignKey(condoUser => condoUser.CondominiumId)
+            .IsRequired();
 
         builder
             .Navigation(condoUser => condoUser.User)
-            .AutoInclude();
+            .IsRequired();
 
         builder
             .Navigation(condoUser => condoUser.Condominium)
-            .AutoInclude();
+            .IsRequired();
     }
 }

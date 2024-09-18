@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using NextCondoApi.Entity;
 using NextCondoApi.Features.Configuration;
@@ -12,7 +11,7 @@ namespace IntegrationTests.Utils;
 
 public static class DbUtils
 {
-    public static async Task<Guid> AddTestUserAsync(
+    public static async Task<User> AddTestUserAsync(
         RegisterUserDetails userDetails,
         IUsersRepository users, 
         IRolesRepository roles, 
@@ -32,7 +31,7 @@ public static class DbUtils
 
         await users.AddAsync(user);
 
-        return user.Id;
+        return user;
     }
 
     public static async Task CleanUpAsync(IOptions<DbOptions> configuration)

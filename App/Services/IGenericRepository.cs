@@ -3,11 +3,6 @@
 public interface IGenericRepository<TEntity> where TEntity : class
 {
     /// <summary>
-    /// Get all entities for this repository.
-    /// </summary>
-    /// <returns>All entities.</returns>
-    public Task<List<TEntity>> GetAllAsync();
-    /// <summary>
     /// Get an entity by it's id.
     /// </summary>
     /// <param name="id">Entities' id.</param>
@@ -26,4 +21,5 @@ public interface IGenericRepository<TEntity> where TEntity : class
     /// <param name="id">Entities' id.</param>
     /// <returns>A boolean that indicated wether the operation was successfull or not.</returns>
     public Task<bool> DeleteAsync(object id);
+    public Task<List<TEntity>> GetAllAsync();
 }

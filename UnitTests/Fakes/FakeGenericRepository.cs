@@ -39,15 +39,15 @@ public class FakeGenericRepository<TEntity> : IGenericRepository<TEntity>
         return false;
     }
 
-    public virtual async Task<List<TEntity>> GetAllAsync()
-    {
-        await Task.Delay(1);
-        return Entities;
-    }
-
     public virtual async Task<TEntity?> GetByIdAsync(object id)
     {
         await Task.Delay(1);
         throw new NotImplementedException();
+    }
+
+    public virtual async Task<List<TEntity>> GetAllAsync()
+    {
+        await Task.Delay(1);
+        return Entities;
     }
 }

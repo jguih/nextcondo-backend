@@ -24,16 +24,4 @@ public class UserDTO
     public required string Email { get; set; }
     public string? Phone { get; set; }
     public required UserRoleDTO Role { get; set; }
-
-    public static UserDTO FromUser(User user)
-    {
-        return new()
-        {
-            Id = user.Id,
-            FullName = user.FullName,
-            Email = user.Email,
-            Phone = user.Phone,
-            Role = new() { Name = user.Role.Name }
-        };
-    }
 }

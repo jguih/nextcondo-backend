@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authentication;
 using System.Security.Claims;
 
-namespace NextCondoApi.Services.Auth;
+namespace NextCondoApi.Features.AuthFeature.Services;
 
 public interface IAuthServiceHelper
 {
@@ -16,7 +16,7 @@ public class AuthServiceHelper : IAuthServiceHelper
     public AuthServiceHelper(IHttpContextAccessor httpContextAccessor)
     {
         ArgumentNullException.ThrowIfNull(httpContextAccessor.HttpContext);
-        this.httpContext = httpContextAccessor.HttpContext;
+        httpContext = httpContextAccessor.HttpContext;
     }
 
     public async Task SignInAsync(string scheme, ClaimsPrincipal principal)

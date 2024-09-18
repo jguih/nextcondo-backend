@@ -1,4 +1,4 @@
-﻿using NextCondoApi.Services.Auth;
+﻿using NextCondoApi.Features.AuthFeature.Services;
 using System.Security.Claims;
 
 namespace UnitTests.Fakes;

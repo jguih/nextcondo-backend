@@ -1,10 +1,13 @@
-﻿using NextCondoApi.Entity;
+﻿using Microsoft.EntityFrameworkCore;
+using NextCondoApi.Entity;
+using NextCondoApi.Models.DTO;
 
 namespace NextCondoApi.Services;
 
 public interface IUsersRepository : IGenericRepository<User>
 {
     public Task<User?> GetByEmailAsync(string email);
+    public Task<UserDTO?> GetDtoByUserIdAsync(Guid userId);
 };
 
 public class UsersRepository : GenericRepository<User>, IUsersRepository
@@ -18,16 +21,29 @@ public class UsersRepository : GenericRepository<User>, IUsersRepository
 
     public async Task<User?> GetByEmailAsync(string email)
     {
-        var users = await GetAllAsync();
-        if (users.Count != 0)
-        {
-            var byEmail = users.Where((user) => user.Email == email);
-            if (!byEmail.Any())
-            {
-                return null;
-            }
-            return byEmail.First();
-        }
-        return null;
+        var query = from user in entities
+                    where user.Email == email
+                    select user;
+        return await query.FirstOrDefaultAsync();
+    }
+
+    public async Task<UserDTO?> GetDtoByUserIdAsync(Guid userId)
+    {
+        var query = from user in entities
+                    where user.Id == userId
+                    select new UserDTO()
+                    {
+                        Id = userId,
+                        Email = user.Email,
+                        FullName = user.FullName,
+                        Phone = user.Phone,
+                        Role = new UserDTO.UserRoleDTO()
+                        {
+                            Name = user.RoleId,
+                        },
+                    };
+        return await query
+            .AsNoTracking()
+            .FirstOrDefaultAsync();
     }
 }

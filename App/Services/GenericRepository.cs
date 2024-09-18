@@ -42,21 +42,13 @@ public class GenericRepository<TEntity>
         return false;
     }
 
-    public virtual async Task<List<TEntity>> GetAllAsync()
-    {
-        var all = await (from entity in entities
-                         select entity)
-                         .AsNoTracking()
-                         .ToListAsync();
-        if (all == null)
-        {
-            return [];
-        }
-        return all;
-    }
-
     public virtual async Task<TEntity?> GetByIdAsync(object id)
     {
         return await entities.FindAsync(id);
+    }
+
+    public virtual async Task<List<TEntity>> GetAllAsync()
+    {
+        return await entities.AsNoTracking().ToListAsync();
     }
 }

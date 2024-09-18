@@ -24,8 +24,10 @@ public class SMTPService : ISMTPService
         defaultFrom = _smtpConfig.Value.DEFAULT_FROM;
     }
 
-    public bool SendMessage(MimeMessage message)
+    public void SendMessage(MimeMessage message)
     {
+        message.From.Add(new MailboxAddress("NextCondo", defaultFrom));
+
         using (var client = new SmtpClient())
         {
             client.Connect(host, port, false);
@@ -37,19 +39,6 @@ public class SMTPService : ISMTPService
 
             client.Send(message);
             client.Disconnect(true);
-
-            return true;
         }
-    }
-
-    public bool SendEmailVerification(string code, string name, string email)
-    {
-        MimeMessage message = new();
-        message.From.Add(new MailboxAddress("NextCondo", defaultFrom));
-        message.To.Add(new MailboxAddress(name, email));
-        message.Subject = "Email verification";
-        message.Body = new TextPart("plain") { Text = $"Use this code to verify your email address: {code}" };
-
-        return SendMessage(message);
     }
 }

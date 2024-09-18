@@ -1,10 +1,10 @@
 ﻿using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using NextCondoApi.Entity;
-using NextCondoApi.Services.SMTP;
+using NextCondoApi.Services;
 using System.Security.Claims;
 
-namespace NextCondoApi.Services.Auth;
+namespace NextCondoApi.Features.AuthFeature.Services;
 
 public interface IAuthService
 {
@@ -13,18 +13,17 @@ public interface IAuthService
     public Task LogoutAsync(string scheme);
     public Task SendPasswordResetEmail(User user);
     public Task<bool> VerifyEmailVerificationCodeAsync(string code, Guid userId);
-    public Task<bool> SendEmailVerificationCodeAsync(Guid userId, string fullName, string email);
+    public Task SendEmailVerificationCodeAsync(Guid userId, string fullName, string email);
 }
 
 public class AuthService : IAuthService
 {
-    private readonly IUsersRepository usersRepository;
-    private readonly IRolesRepository rolesRepository;
-    private readonly IPasswordHasher<User> hasher;
-    private readonly IDataProtectionProvider dataProtectionProvider;
-    private readonly IAuthServiceHelper helper;
-    private readonly ISMTPService smtpService;
-    private readonly IEmailVerificationCodeRepository emailVerificationCodeRepository;
+    private readonly IUsersRepository _usersRepository;
+    private readonly IRolesRepository _rolesRepository;
+    private readonly IPasswordHasher<User> _hasher;
+    private readonly IDataProtectionProvider _dataProtectionProvider;
+    private readonly IAuthServiceHelper _helper;
+    private readonly IEmailVerificationService _emailVerificationService;
 
     public AuthService(
         IUsersRepository usersRepository,
@@ -32,16 +31,14 @@ public class AuthService : IAuthService
         IPasswordHasher<User> hasher,
         IDataProtectionProvider dataProtectionProvider,
         IAuthServiceHelper helper,
-        ISMTPService smtpService,
-        IEmailVerificationCodeRepository emailVerificationCodeRepository)
+        IEmailVerificationService emailVerificationService)
     {
-        this.usersRepository = usersRepository;
-        this.rolesRepository = rolesRepository;
-        this.hasher = hasher;
-        this.dataProtectionProvider = dataProtectionProvider;
-        this.helper = helper;
-        this.smtpService = smtpService;
-        this.emailVerificationCodeRepository = emailVerificationCodeRepository;
+        _usersRepository = usersRepository;
+        _rolesRepository = rolesRepository;
+        _hasher = hasher;
+        _dataProtectionProvider = dataProtectionProvider;
+        _helper = helper;
+        _emailVerificationService = emailVerificationService;
     }
 
     public async Task<bool> RegisterAsync(
@@ -51,7 +48,7 @@ public class AuthService : IAuthService
         string? phone,
         string scheme)
     {
-        var existing = await usersRepository.GetByEmailAsync(email);
+        var existing = await _usersRepository.GetByEmailAsync(email);
 
         if (existing != null)
         {
@@ -62,18 +59,17 @@ public class AuthService : IAuthService
             return true;
         }
 
-        Role defaultRole = await rolesRepository.GetDefaultAsync();
+        Role defaultRole = await _rolesRepository.GetDefaultAsync();
         var user = new User()
         {
             Email = email,
             FullName = fullName,
             Phone = phone,
-            Role = defaultRole,
             RoleId = defaultRole.Name,
         };
-        var passwordHash = hasher.HashPassword(user, password);
+        var passwordHash = _hasher.HashPassword(user, password);
         user.PasswordHash = passwordHash;
-        await usersRepository.AddAsync(user);
+        await _usersRepository.AddAsync(user);
         await SendEmailVerificationCodeAsync(user.Id, fullName, email);
 
         return true;
@@ -81,12 +77,12 @@ public class AuthService : IAuthService
 
     public async Task<bool> LoginAsync(string email, string password, string scheme)
     {
-        var user = await usersRepository.GetByEmailAsync(email);
+        var user = await _usersRepository.GetByEmailAsync(email);
         if (user == null)
         {
             return false;
         }
-        var result = hasher.VerifyHashedPassword(user, user.PasswordHash, password);
+        var result = _hasher.VerifyHashedPassword(user, user.PasswordHash, password);
         if (result == PasswordVerificationResult.Failed)
         {
             return false;
@@ -94,32 +90,32 @@ public class AuthService : IAuthService
         var claims = user.GetClaims();
         var identity = new ClaimsIdentity(claims, scheme);
         var principal = new ClaimsPrincipal(identity);
-        await helper.SignInAsync(scheme, principal);
+        await _helper.SignInAsync(scheme, principal);
         return true;
     }
 
-    public async Task<bool> SendEmailVerificationCodeAsync(Guid userId, string fullName, string email)
+    public async Task SendEmailVerificationCodeAsync(Guid userId, string fullName, string email)
     {
-        var code = await emailVerificationCodeRepository.CreateCodeAsync(userId, email);
-        return smtpService.SendEmailVerification(code, fullName, email);
+        var code = await _emailVerificationService.CreateCodeAsync(userId, email);
+        _emailVerificationService.SendVerificationEmail(code, fullName, email);
     }
 
     public async Task<bool> VerifyEmailVerificationCodeAsync(string code, Guid userId)
     {
-        var user = await usersRepository.GetByIdAsync(userId);
+        var user = await _usersRepository.GetByIdAsync(userId);
 
         if (user is null)
         {
             return false;
         }
 
-        var result = await emailVerificationCodeRepository.VerifyCodeAsync(user.Id, user.Email, code);
+        var result = await _emailVerificationService.VerifyCodeAsync(user.Id, user.Email, code);
 
         if (result == true)
         {
             user.IsEmailVerified = true;
             user.EmailVerifiedAt = DateTimeOffset.UtcNow;
-            await usersRepository.UpdateAsync(user);
+            await _usersRepository.UpdateAsync(user);
         }
 
         return result;
@@ -132,6 +128,6 @@ public class AuthService : IAuthService
 
     public async Task LogoutAsync(string scheme)
     {
-        await helper.SignOutAsync(scheme);
+        await _helper.SignOutAsync(scheme);
     }
 }

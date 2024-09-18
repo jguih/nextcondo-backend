@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NextCondoApi.Entity;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace NextCondoApi.Migrations
 {
     [DbContext(typeof(NextCondoApiDbContext))]
-    partial class SimplifyCondoApiDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240917161642_AddCurrentCondominium")]
+    partial class AddCurrentCondominium
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -50,7 +53,7 @@ namespace NextCondoApi.Migrations
 
                     b.HasIndex("OwnerId");
 
-                    b.ToTable("Condominiums", (string)null);
+                    b.ToTable("Condominiums");
                 });
 
             modelBuilder.Entity("NextCondoApi.Entity.CondominiumUser", b =>
@@ -74,7 +77,7 @@ namespace NextCondoApi.Migrations
 
                     b.HasIndex("CondominiumId");
 
-                    b.ToTable("CondominiumUsers", (string)null);
+                    b.ToTable("CondominiumUsers");
                 });
 
             modelBuilder.Entity("NextCondoApi.Entity.CurrentCondominium", b =>
@@ -99,7 +102,7 @@ namespace NextCondoApi.Migrations
                     b.HasIndex("UserId")
                         .IsUnique();
 
-                    b.ToTable("CurrentCondominium", (string)null);
+                    b.ToTable("CurrentCondominium");
                 });
 
             modelBuilder.Entity("NextCondoApi.Entity.EmailVerificationCode", b =>
@@ -135,7 +138,7 @@ namespace NextCondoApi.Migrations
                     b.HasIndex("UserId")
                         .IsUnique();
 
-                    b.ToTable("EmailVerificationCodes", (string)null);
+                    b.ToTable("EmailVerificationCodes");
                 });
 
             modelBuilder.Entity("NextCondoApi.Entity.Role", b =>
@@ -151,7 +154,7 @@ namespace NextCondoApi.Migrations
 
                     b.HasKey("Name");
 
-                    b.ToTable("Roles", (string)null);
+                    b.ToTable("Roles");
 
                     b.HasData(
                         new
@@ -213,7 +216,7 @@ namespace NextCondoApi.Migrations
 
                     b.HasIndex("RoleId");
 
-                    b.ToTable("Users", (string)null);
+                    b.ToTable("Users");
                 });
 
             modelBuilder.Entity("NextCondoApi.Entity.Condominium", b =>
