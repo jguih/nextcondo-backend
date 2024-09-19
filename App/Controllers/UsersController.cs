@@ -8,10 +8,6 @@ using System.Net.Mime;
 namespace NextCondoApi.Controllers;
 
 [Authorize]
-[ProducesResponseType(
-        typeof(ProblemDetails),
-        StatusCodes.Status401Unauthorized,
-        MediaTypeNames.Application.ProblemJson)]
 [Route("[controller]")]
 [ApiController]
 public class UsersController : ControllerBase

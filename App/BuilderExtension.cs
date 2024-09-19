@@ -10,6 +10,9 @@ using NextCondoApi.Features.CondominiumFeature.Services;
 using NextCondoApi.Features.Configuration;
 using NextCondoApi.Services;
 using NextCondoApi.Services.SMTP;
+using System.Net.Mime;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
 
 namespace NextCondoApi;
@@ -26,13 +29,17 @@ public static class BuilderExtension
                 options.Events.OnRedirectToLogin = context =>
                 {
                     context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                    context.Response.WriteAsJsonAsync(new ProblemDetails()
-                    {
-                        Title = "Unauthorized",
-                        Status = StatusCodes.Status401Unauthorized,
-                        Detail = "Not authorized to access requested resource.",
-                        Type = "https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401"
-                    });
+                    context.Response.ContentType = MediaTypeNames.Application.ProblemJson;
+                    context.Response.WriteAsJsonAsync(
+                        new ProblemDetails()
+                        {
+                            Title = "Unauthorized",
+                            Status = StatusCodes.Status401Unauthorized,
+                            Detail = "Not authorized to access requested resource.",
+                            Type = "https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401"
+                        }, 
+                        JsonSerializerOptions.Default, 
+                        MediaTypeNames.Application.ProblemJson);
                     return Task.CompletedTask;
                 };
             });
