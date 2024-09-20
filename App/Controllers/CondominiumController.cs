@@ -18,23 +18,19 @@ namespace NextCondoApi.Controllers;
 public class CondominiumController : ControllerBase
 {
     private readonly ICondominiumsRepository _condominiumsRepository;
-    private readonly ICurrentCondominiumRepository _currentCondominiumRepository;
-    private readonly CondominiumService _condominiumService;
+    private readonly ICondominiumService _condominiumService;
 
     public CondominiumController(
         ICondominiumsRepository condominiumRepository,
-        ICurrentCondominiumRepository currentCondominiumRepository,
-        CondominiumService condominiumService)
+        ICondominiumService condominiumService)
     {
         _condominiumsRepository = condominiumRepository;
-        _currentCondominiumRepository = currentCondominiumRepository;
         _condominiumService = condominiumService;
     }
 
     [HttpPost]
     [Consumes(MediaTypeNames.Multipart.FormData)]
-    [ProducesResponseType(StatusCodes.Status201Created)]
-    [ProducesErrorResponseType(typeof(ProblemDetails))]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> AddAsync([FromForm] AddCondominiumDTO data)
     {
         var identity = User.GetIdentity();
@@ -57,7 +53,7 @@ public class CondominiumController : ControllerBase
 
         await _condominiumsRepository.AddAsync(newCondominium);
 
-        return Ok();
+        return CreatedAtAction(nameof(GetMineCurrent), null, new { newCondominium.Id });
     }
 
     [HttpGet("mine")]
@@ -68,7 +64,7 @@ public class CondominiumController : ControllerBase
     public async Task<IActionResult> GetMineAsync()
     {
         var identity = User.GetIdentity();
-        var userCondominiums = await _condominiumsRepository.GetDtoListByUserIdAsync(identity);
+        var userCondominiums = await _condominiumsRepository.GetDtoListAsync(identity);
         return Ok(userCondominiums);
     }
 
@@ -78,7 +74,7 @@ public class CondominiumController : ControllerBase
         StatusCodes.Status200OK,
         MediaTypeNames.Application.Json)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    public async Task<IActionResult> GetMineCurrentAsync()
+    public async Task<IActionResult> GetMineCurrent()
     {
         var identity = User.GetIdentity();
         var current = await _condominiumService.GetCurrentAsync(identity);

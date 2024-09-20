@@ -6,6 +6,8 @@ using Microsoft.Extensions.DependencyInjection;
 using NextCondoApi;
 using Microsoft.Extensions.Options;
 using NextCondoApi.Features.Configuration;
+using NextCondoApi.Services.SMTP;
+using IntegrationTests.Fakes;
 
 namespace IntegrationTests;
 
@@ -16,7 +18,15 @@ public class TestsWebApplicationFactory<TProgram>
     {
         builder.ConfigureServices(services =>
         {
+            var descriptor = services
+                .SingleOrDefault(d => d.ServiceType == typeof(ISMTPService));
 
+            if (descriptor is not null)
+            {
+                services.Remove(descriptor);
+            }
+
+            services.AddScoped<ISMTPService, FakeSMTPService>();
         });
 
         builder.ConfigureTestServices(services =>

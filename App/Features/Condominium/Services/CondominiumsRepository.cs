@@ -7,9 +7,8 @@ namespace NextCondoApi.Features.CondominiumFeature.Services;
 
 public interface ICondominiumsRepository : IGenericRepository<Condominium>
 {
-    public Task<List<CondominiumDTO>> GetDtoListByUserIdAsync(Guid userId);
-    public Task<CondominiumDTO?> GetDtoByIdAsync(Guid id);
-    public Task<Guid?> GetFirstCondominiumIdForUser(Guid userId);
+    public Task<List<CondominiumDTO>> GetDtoListAsync(Guid? userId = default);
+    public Task<Guid?> GetCondominiumIdFirstOrDefaultAsync(Guid? userId = default);
 }
 
 public class CondominiumsRepository : GenericRepository<Condominium>, ICondominiumsRepository
@@ -21,46 +20,16 @@ public class CondominiumsRepository : GenericRepository<Condominium>, ICondomini
     {
     }
 
-    public async Task<List<CondominiumDTO>> GetDtoListByUserIdAsync(Guid userId)
+    public async Task<List<CondominiumDTO>> GetDtoListAsync(Guid? userId)
     {
-        var query = from condominium in entities
-                    let owner = condominium.Owner
-                    let members = condominium.Members
-                    where owner.Id == userId ||
-                        members.Any(m => m.UserId.Equals(userId))
-                    select new CondominiumDTO()
-                    {
-                        Id = condominium.Id,
-                        Name = condominium.Name,
-                        Description = condominium.Description,
-                        Owner = new()
-                        {
-                            Id = owner.Id,
-                            FullName = owner.FullName,
-                        },
-                        Members = from member in members
-                                  select new CondominiumDTO.CondominiumMemberDTO()
-                                  {
-                                      Id = member.UserId,
-                                      FullName = member.User!.FullName,
-                                      RelationshipType = member.RelationshipType == 
-                                        CondominiumUserRelationshipType.Tenant ? 
-                                        "Tenant" : 
-                                        "Manager",
-                                  }
-                    };
-        var list = await query
-            .AsNoTracking()
-            .ToListAsync();
-        return list;
-    }
+        var hasUserId = userId.HasValue && userId.Value != Guid.Empty;
 
-    public async Task<CondominiumDTO?> GetDtoByIdAsync(Guid id)
-    {
         var query = from condominium in entities
                     let owner = condominium.Owner
                     let members = condominium.Members
-                    where condominium.Id == id
+                    where !hasUserId
+                        || owner.Id == userId
+                        || members.Any(m => m.UserId.Equals(userId))
                     select new CondominiumDTO()
                     {
                         Id = condominium.Id,
@@ -82,19 +51,23 @@ public class CondominiumsRepository : GenericRepository<Condominium>, ICondomini
                                         "Manager",
                                   }
                     };
-        return await query
+        var list = await query
             .AsNoTracking()
-            .FirstOrDefaultAsync();
+            .ToListAsync();
+        return list;
     }
 
-    public async Task<Guid?> GetFirstCondominiumIdForUser(Guid userId)
+    public async Task<Guid?> GetCondominiumIdFirstOrDefaultAsync(Guid? userId)
     {
+        var hasUserId = userId.HasValue && !userId.Value.Equals(Guid.Empty);
+
         var condominiums = from condominium in db.Condominiums
-                           where condominium.OwnerId.Equals(userId)
-                           select new { condominium.Id };
-        var condo = await condominiums
-            .AsNoTracking()
-            .FirstOrDefaultAsync();
-        return condo?.Id;
+                           let members = condominium.Members
+                           where !hasUserId
+                                || condominium.OwnerId.Equals(userId)
+                                || members.Any(m => m.UserId.Equals(userId))
+                           select condominium.Id;
+
+        return await condominiums.FirstOrDefaultAsync();
     }
 }

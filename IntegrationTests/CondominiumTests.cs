@@ -1,8 +1,6 @@
-using Bogus;
 using IntegrationTests.Utils;
 using Newtonsoft.Json;
 using NextCondoApi;
-using NextCondoApi.Entity;
 using NextCondoApi.Models.DTO;
 using System.Net;
 using TestFakes;
@@ -13,24 +11,23 @@ namespace IntegrationTests;
 public class CondominiumTests : IClassFixture<TestsWebApplicationFactory<Program>>
 {
     private readonly TestsWebApplicationFactory<Program> _factory;
-    private readonly Faker _faker;
 
     public CondominiumTests(TestsWebApplicationFactory<Program> factory)
     {
         _factory = factory;
-        _faker = new Faker("pt_BR");
     }
 
     [Fact]
-    public async Task FailToAdd_WhenUserNotAuthenticated()
+    public async Task Add_Condominium_Returns401()
     {
         // Arrange
         var client = _factory.CreateClient();
+        var details = FakeCondominiumsFactory.GetFakeNewCondominiumDetails();
         using MultipartFormDataContent newCondoDetails = new()
         {
-            { new StringContent(_faker.Company.CompanyName()), "name" },
-            { new StringContent(_faker.Lorem.Paragraph(120)), "description" },
-            { new StringContent(CondominiumUserRelationshipType.Manager.ToString()), "relationshipType" }
+            { new StringContent(details.Name), "name" },
+            { new StringContent(details.Description!), "description" },
+            { new StringContent(details.RelationshipType.ToString()), "relationshipType" }
         };
 
         // Act
@@ -41,22 +38,19 @@ public class CondominiumTests : IClassFixture<TestsWebApplicationFactory<Program
     }
 
     [Fact]
-    public async Task AddNewCondominium()
+    public async Task Add_Condominium_ReturnsCreatedCondominium()
     {
         // Arrange
         var userDetails = FakeUsersFactory.GetFakeUserDetails();
         var authenticatedClient = await _factory.CreateAuthenticatedHttpClientForUserAsync(userDetails);
         var client = authenticatedClient.client;
         var testUser = authenticatedClient.user;
-        var newCondoName = _faker.Company.CompanyName();
-        var newCondoDescription = _faker.Lorem.Paragraph(3);
-        var newCondoRelationshipType = CondominiumUserRelationshipType.Manager.ToString();
-
+        var details = FakeCondominiumsFactory.GetFakeNewCondominiumDetails();
         using MultipartFormDataContent newCondoDetails = new()
         {
-            { new StringContent(newCondoName), "name" },
-            { new StringContent(newCondoDescription), "description" },
-            { new StringContent(newCondoRelationshipType), "relationshipType" }
+            { new StringContent(details.Name), "name" },
+            { new StringContent(details.Description!), "description" },
+            { new StringContent(details.RelationshipType.ToString()), "relationshipType" }
         };
 
         // Act
@@ -69,17 +63,18 @@ public class CondominiumTests : IClassFixture<TestsWebApplicationFactory<Program
 
         // Assert
         addCondoResult.EnsureSuccessStatusCode();
+        Assert.Equal(HttpStatusCode.Created, addCondoResult.StatusCode);
         getMyCondoResult.EnsureSuccessStatusCode();
         Assert.Contains("application/json", getMyCondoResult.Content.Headers.ContentType?.ToString());
         Assert.NotNull(created);
-        Assert.Equal(newCondoName, created.Name);
-        Assert.Equal(newCondoDescription, created.Description);
+        Assert.Equal(details.Name, created.Name);
+        Assert.Equal(details.Description, created.Description);
         Assert.NotNull(userAsMember);
-        Assert.Equal("Manager", userAsMember.RelationshipType);
+        Assert.Equal(details.RelationshipType.ToString(), userAsMember.RelationshipType);
     }
 
     [Fact]
-    public async Task GetCurrent_Returns204_WhenUserHasNoCondominiums()
+    public async Task Get_Current_Returns204()
     {
         // Arrange
         var userDetails = FakeUsersFactory.GetFakeUserDetails();
@@ -95,22 +90,19 @@ public class CondominiumTests : IClassFixture<TestsWebApplicationFactory<Program
     }
 
     [Fact]
-    public async Task GetCurrent_ReturnsCurrentCondominium_IfUserHasCondominiums()
+    public async Task Get_Current_ReturnsCurrentCondominium()
     {
         // Arrange
         var userDetails = FakeUsersFactory.GetFakeUserDetails();
         var authenticatedClient = await _factory.CreateAuthenticatedHttpClientForUserAsync(userDetails);
         var client = authenticatedClient.client;
         var testUser = authenticatedClient.user;
-        var newCondoName = _faker.Company.CompanyName();
-        var newCondoDescription = _faker.Lorem.Paragraph(3);
-        var newCondoRelationshipType = CondominiumUserRelationshipType.Manager.ToString();
-
+        var details = FakeCondominiumsFactory.GetFakeNewCondominiumDetails();
         using MultipartFormDataContent newCondoDetails = new()
         {
-            { new StringContent(newCondoName), "name" },
-            { new StringContent(newCondoDescription), "description" },
-            { new StringContent(newCondoRelationshipType), "relationshipType" }
+            { new StringContent(details.Name), "name" },
+            { new StringContent(details.Description!), "description" },
+            { new StringContent(details.RelationshipType.ToString()), "relationshipType" }
         };
 
         // Act
@@ -123,8 +115,8 @@ public class CondominiumTests : IClassFixture<TestsWebApplicationFactory<Program
         addCondoResult.EnsureSuccessStatusCode();
         currentResult.EnsureSuccessStatusCode();
         Assert.NotNull(current);
-        Assert.Equal(newCondoName, current.Name);
-        Assert.Equal(newCondoDescription, current.Description);
+        Assert.Equal(details.Name, current.Name);
+        Assert.Equal(details.Description, current.Description);
         Assert.Equal(testUser.Id, current.Owner.Id);
     }
 }

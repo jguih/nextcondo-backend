@@ -8,11 +8,12 @@ namespace NextCondoApi.Features.CondominiumFeature.Services;
 public interface ICurrentCondominiumRepository : IGenericRepository<CurrentCondominium>
 {
     /// <summary>
-    /// Returns an instance of CondominiumDto of current condominium for User.
+    /// Returns first instance of Condominium as Dto.
     /// </summary>
-    /// <param name="userId">Current User's Id</param>
-    /// <returns>CondominiumDTO</returns>
-    public Task<CondominiumDTO?> GetDtoByUserIdAsync(Guid userId);
+    /// <param name="userId"></param>
+    /// <returns></returns>
+    public Task<CondominiumDTO?> GetDtoFirstOrDefaultAsync(Guid? userId = default);
+    public Task<Guid?> GetCondominiumIdAsync(Guid? userId = default);
 }
 
 public class CurrentCondominiumRepository : GenericRepository<CurrentCondominium>, ICurrentCondominiumRepository
@@ -25,10 +26,13 @@ public class CurrentCondominiumRepository : GenericRepository<CurrentCondominium
     {
     }
 
-    public async Task<CondominiumDTO?> GetDtoByUserIdAsync(Guid userId)
+    public async Task<CondominiumDTO?> GetDtoFirstOrDefaultAsync(Guid? userId)
     {
+        var hasUserId = userId.HasValue && !userId.Value.Equals(Guid.Empty);
+
         var query = from currentCondo in entities
-                    where currentCondo.UserId == userId
+                    where !hasUserId
+                        || currentCondo.UserId == userId
                     let condominium = currentCondo.Condominium
                     let owner = condominium.Owner
                     let members = condominium.Members
@@ -54,5 +58,17 @@ public class CurrentCondominiumRepository : GenericRepository<CurrentCondominium
                                   }
                     };
         return await query.AsNoTracking().FirstOrDefaultAsync();
+    }
+
+    public async Task<Guid?> GetCondominiumIdAsync(Guid? userId)
+    {
+        var hasUserId = userId.HasValue && !userId.Value.Equals(Guid.Empty);
+
+        var query = from currentCondo in entities
+                    where !hasUserId
+                        || currentCondo.UserId == userId
+                    select currentCondo.CondominiumId;
+
+        return await query.FirstOrDefaultAsync();
     }
 }

@@ -8,6 +8,7 @@ using NextCondoApi.Entity;
 using NextCondoApi.Features.AuthFeature.Services;
 using NextCondoApi.Features.CondominiumFeature.Services;
 using NextCondoApi.Features.Configuration;
+using NextCondoApi.Features.OccurrencesFeature.Services;
 using NextCondoApi.Services;
 using NextCondoApi.Services.SMTP;
 using System.Net.Mime;
@@ -29,7 +30,6 @@ public static class BuilderExtension
                 options.Events.OnRedirectToLogin = context =>
                 {
                     context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                    context.Response.ContentType = MediaTypeNames.Application.ProblemJson;
                     context.Response.WriteAsJsonAsync(
                         new ProblemDetails()
                         {
@@ -37,8 +37,8 @@ public static class BuilderExtension
                             Status = StatusCodes.Status401Unauthorized,
                             Detail = "Not authorized to access requested resource.",
                             Type = "https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401"
-                        }, 
-                        JsonSerializerOptions.Default, 
+                        },
+                        JsonSerializerOptions.Default,
                         MediaTypeNames.Application.ProblemJson);
                     return Task.CompletedTask;
                 };
@@ -57,7 +57,7 @@ public static class BuilderExtension
     public static void AddSwagger(this WebApplicationBuilder builder, IConfiguration configuration)
     {
         SystemOptions systemOptions = new();
-        configuration.GetRequiredSection(SystemOptions.SYSTEM).Bind(systemOptions) ;
+        configuration.GetRequiredSection(SystemOptions.SYSTEM).Bind(systemOptions);
 
         builder.Services.AddSwaggerGen(c =>
         {
@@ -97,11 +97,14 @@ public static class BuilderExtension
         builder.Services.AddScoped<ICondominiumsRepository, CondominiumsRepository>();
         builder.Services.AddScoped<IEmailVerificationCodeRepository, EmailVerificationCodeRepository>();
         builder.Services.AddScoped<ICurrentCondominiumRepository, CurrentCondominiumRepository>();
+        builder.Services.AddScoped<IOccurrencesRepository, OccurrencesRepository>();
+        builder.Services.AddScoped<IOccurrenceTypesRepository, OccurrenceTypesRepository>();
 
         builder.Services.AddScoped<IAuthServiceHelper, AuthServiceHelper>();
         builder.Services.AddScoped<IAuthService, AuthService>();
         builder.Services.AddScoped<ISMTPService, SMTPService>();
-        builder.Services.AddScoped(typeof (CondominiumService));
+        builder.Services.AddScoped<ICondominiumService, CondominiumService>();
+        builder.Services.AddScoped(typeof(OccurrencesService));
         builder.Services.AddScoped<IEmailVerificationService, EmailVerificationService>();
     }
 

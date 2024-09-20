@@ -9,7 +9,7 @@ namespace NextCondoApi.Entity;
 public class NextCondoApiDbContext : DbContext
 {
     public NextCondoApiDbContext(
-        DbContextOptions<NextCondoApiDbContext> options, 
+        DbContextOptions<NextCondoApiDbContext> options,
         IOptions<DbOptions> dbConfig)
         : base(options)
     {
@@ -23,6 +23,8 @@ public class NextCondoApiDbContext : DbContext
     public DbSet<CondominiumUser> CondominiumUsers { get; set; }
     public DbSet<EmailVerificationCode> EmailVerificationCodes { get; set; }
     public DbSet<CurrentCondominium> CurrentCondominium { get; set; }
+    public DbSet<Occurrence> Occurrences { get; set; }
+    public DbSet<OccurrenceType> OccurrenceTypes { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -32,6 +34,8 @@ public class NextCondoApiDbContext : DbContext
         new CondominiumUserEntityTypeConfiguration().Configure(modelBuilder.Entity<CondominiumUser>());
         new EmailVerificationCodeEntityTypeConfiguration().Configure(modelBuilder.Entity<EmailVerificationCode>());
         new CurrentCondominiumEntityTypeConfiguration().Configure(modelBuilder.Entity<CurrentCondominium>());
+        new OccurrenceEntityTypeConfiguration().Configure(modelBuilder.Entity<Occurrence>());
+        new OccurrenceTypeEntityTypeConfiguration().Configure(modelBuilder.Entity<OccurrenceType>());
         base.OnModelCreating(modelBuilder);
     }
 

@@ -18,13 +18,13 @@ public class RoleEntityTypeConfiguration : IEntityTypeConfiguration<Role>
 
         builder
           .HasData(
-            new
+            new Role()
             {
                 Name = "User",
                 CreatedAt = new DateTimeOffset(new DateTime(2024, 8, 13, 22, 0, 46, 966, DateTimeKind.Utc)),
                 UpdatedAt = new DateTimeOffset(new DateTime(2024, 8, 13, 22, 0, 46, 966, DateTimeKind.Utc))
             },
-            new
+            new Role()
             {
                 Name = "Admin",
                 CreatedAt = new DateTimeOffset(new DateTime(2024, 8, 13, 22, 0, 46, 966, DateTimeKind.Utc)),

@@ -11,7 +11,6 @@ public static class FakeUsersFactory
     private static Faker<User> UserFaker { get; } = new Faker<User>()
         .RuleFor(o => o.Id, f => f.Random.Guid())
         .RuleFor(o => o.Email, f => f.Internet.Email())
-        .RuleFor(o => o.Role, f => FakeRolesFactory.GetDefault())
         .RuleFor(o => o.RoleId, f => FakeRolesFactory.GetDefault().Name)
         .RuleFor(o => o.CreatedAt, f => DateTimeOffset.UtcNow)
         .RuleFor(o => o.UpdatedAt, f => DateTimeOffset.UtcNow)
