@@ -70,6 +70,8 @@ public class OccurrencesRepository : GenericRepository<Occurrence>, IOccurrences
                         Id = occurrence.Id,
                         Title = occurrence.Title,
                         Description = occurrence.Description,
+                        CreatedAt = occurrence.CreatedAt,
+                        UpdatedAt = occurrence.UpdatedAt,
                         OccurrenceType = new()
                         {
                             Id = occurrenceType.Id,

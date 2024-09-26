@@ -7,17 +7,17 @@ namespace NextCondoApi.Features.OccurrencesFeature.Services;
 public class OccurrencesService
 {
     private readonly IOccurrencesRepository _occurrencesRepository;
-    private readonly ICondominiumsRepository _condominiumsRepository;
     private readonly ICurrentCondominiumRepository _currentCondominiumRepository;
+    private readonly IOccurrenceTypesRepository _occurrenceTypesRepository;
 
     public OccurrencesService(
         IOccurrencesRepository occurrencesRepository,
-        ICondominiumsRepository condominiumsRepository,
-        ICurrentCondominiumRepository currentCondominiumRepository)
+        ICurrentCondominiumRepository currentCondominiumRepository,
+        IOccurrenceTypesRepository occurrenceTypesRepository)
     {
         _occurrencesRepository = occurrencesRepository;
-        _condominiumsRepository = condominiumsRepository;
         _currentCondominiumRepository = currentCondominiumRepository;
+        _occurrenceTypesRepository = occurrenceTypesRepository;
     }
 
     /// <summary>
@@ -25,14 +25,26 @@ public class OccurrencesService
     /// </summary>
     /// <param name="data"></param>
     /// <param name="userId"></param>
-    /// <returns></returns>
-    public async Task<Occurrence?> AddAsync(AddOccurrenceDTO data, Guid userId)
+    /// <returns>
+    /// Tuple with a number that represents why this function succeeded or failed and the created occurrence
+    /// <para>(2, null) when user does not have a current condominium</para>
+    /// <para>(1, null) when occurrence type does not exist</para>
+    /// <para>(0, occurrence) on success</para>
+    /// </returns>
+    public async Task<(int result, Occurrence? occurrence)> AddAsync(AddOccurrenceDTO data, Guid userId)
     {
         var current = await _currentCondominiumRepository.GetCondominiumIdAsync(userId);
 
         if (!current.HasValue || current.Value.Equals(Guid.Empty))
         {
-            return null;
+            return (2, null);
+        }
+
+        var type = await _occurrenceTypesRepository.GetByIdAsync(data.OccurrenceTypeId);
+
+        if (type is null)
+        {
+            return (1, null);
         }
 
         Occurrence occurrence = new()
@@ -45,7 +57,7 @@ public class OccurrencesService
         };
 
         await _occurrencesRepository.AddAsync(occurrence);
-        return occurrence;
+        return (0, occurrence);
     }
 
     /// <summary>

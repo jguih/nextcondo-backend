@@ -13,6 +13,7 @@ public class OccurrenceTypeDTO
 public class AddOccurrenceDTO
 {
     [Required]
+    [Range(1, int.MaxValue, ErrorMessage = "Value for {0} must be between {1} and {2}.")]
     public int OccurrenceTypeId { get; set; }
     [Required(AllowEmptyStrings = false)]
     [StringLength(maximumLength: 255)]
@@ -41,7 +42,9 @@ public class OccurrenceDTO
     public required Guid Id { get; set; }
     public required OccurrenceDTOCreator Creator { get; set; }
     public required OccurrenceDTOCondominium Condominium { get; set; }
-    public OccurrenceDTOType? OccurrenceType { get; set; }
+    public required OccurrenceDTOType OccurrenceType { get; set; }
     public required string Title { get; set; }
     public string? Description { get; set; }
+    public DateTimeOffset? CreatedAt { get; set; }
+    public DateTimeOffset? UpdatedAt { get; set; }
 }

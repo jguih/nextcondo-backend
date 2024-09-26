@@ -11,8 +11,8 @@ using IntegrationTests.Fakes;
 
 namespace IntegrationTests;
 
-public class TestsWebApplicationFactory<TProgram>
-    : WebApplicationFactory<TProgram> where TProgram : Program
+public class TestsWebApplicationFactory<TProgram> : WebApplicationFactory<TProgram>
+    where TProgram : Program
 {
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -28,12 +28,7 @@ public class TestsWebApplicationFactory<TProgram>
 
             services.AddScoped<ISMTPService, FakeSMTPService>();
         });
-
-        builder.ConfigureTestServices(services =>
-        {
-
-        });
-
+        builder.ConfigureTestServices(services => { });
         builder.UseEnvironment("Tests");
     }
 

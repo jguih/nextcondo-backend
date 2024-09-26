@@ -51,9 +51,19 @@ public class OccurrencesController : ControllerBase
         MediaTypeNames.Application.Json)]
     public async Task<IActionResult> AddAsync([FromForm] AddOccurrenceDTO data)
     {
-        var occurrence = await _occurrencesService.AddAsync(data, User.GetIdentity());
+        var result = await _occurrencesService.AddAsync(data, User.GetIdentity());
 
-        if (occurrence is null)
+        if (result.result == 1)
+        {
+            return Problem(
+                title: "Occurrence type not found",
+                detail: "Occurrence type not found",
+                statusCode: StatusCodes.Status404NotFound,
+                type: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404"
+            );
+        }
+
+        if (result.result == 2)
         {
             return Problem(
                 title: "Current condominium not found",
@@ -63,7 +73,7 @@ public class OccurrencesController : ControllerBase
             );
         }
 
-        return CreatedAtAction(nameof(GetById), new { occurrence.Id }, new { occurrence.Id });
+        return CreatedAtAction(nameof(GetById), new { result.occurrence!.Id }, new { result.occurrence.Id });
     }
 
     [HttpGet("{Id}")]
