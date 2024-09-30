@@ -102,4 +102,9 @@ public class OccurrencesService
         var occurrences = await _occurrencesRepository.GetDtoListAsync(current.Value);
         return occurrences;
     }
+
+    public async Task<bool> DeleteAsync(Guid Id)
+    {
+        return await _occurrencesRepository.DeleteAsync(Id);
+    }
 }

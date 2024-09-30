@@ -123,4 +123,22 @@ public class OccurrencesController : ControllerBase
         var result = await _occurrencesService.GetCurrentAsync(identity);
         return Ok(result);
     }
+
+    [HttpDelete("{Id}")]
+    public async Task<IActionResult> DeleteAsync(string Id)
+    {
+        var success = await _occurrencesService.DeleteAsync(new Guid(Id));
+
+        if (!success)
+        {
+            return Problem(
+                title: "Occurrence not found",
+                detail: "Occurrence not found",
+                statusCode: StatusCodes.Status404NotFound,
+                type: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404"
+            );
+        }
+
+        return NoContent();
+    }
 }
