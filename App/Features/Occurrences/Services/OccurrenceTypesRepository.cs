@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using NextCondoApi.Entity;
+using NextCondoApi.Features.OccurrencesFeature.Models;
 using NextCondoApi.Services;
 
 namespace NextCondoApi.Features.OccurrencesFeature.Services;

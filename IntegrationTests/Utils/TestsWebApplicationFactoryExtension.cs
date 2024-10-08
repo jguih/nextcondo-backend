@@ -9,8 +9,8 @@ namespace IntegrationTests.Utils;
 
 public static class TestsWebApplicationFactoryExtension
 {
-    public static async Task<(User user, HttpClient client)> CreateAuthenticatedHttpClientForUserAsync(
-        this TestsWebApplicationFactory<Program> factory, 
+    public static async Task<(User user, HttpClient client)> CreateAuthenticatedHttpClientAsync(
+        this TestsWebApplicationFactory<Program> factory,
         RegisterUserDetails userDetails)
     {
         User testUser;

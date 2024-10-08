@@ -42,7 +42,7 @@ public class CondominiumTests : IClassFixture<TestsWebApplicationFactory<Program
     {
         // Arrange
         var userDetails = FakeUsersFactory.GetFakeUserDetails();
-        var authenticatedClient = await _factory.CreateAuthenticatedHttpClientForUserAsync(userDetails);
+        var authenticatedClient = await _factory.CreateAuthenticatedHttpClientAsync(userDetails);
         var client = authenticatedClient.client;
         var testUser = authenticatedClient.user;
         var details = FakeCondominiumsFactory.GetFakeNewCondominiumDetails();
@@ -78,7 +78,7 @@ public class CondominiumTests : IClassFixture<TestsWebApplicationFactory<Program
     {
         // Arrange
         var userDetails = FakeUsersFactory.GetFakeUserDetails();
-        var authenticatedClient = await _factory.CreateAuthenticatedHttpClientForUserAsync(userDetails);
+        var authenticatedClient = await _factory.CreateAuthenticatedHttpClientAsync(userDetails);
         var client = authenticatedClient.client;
 
         // Act
@@ -94,7 +94,7 @@ public class CondominiumTests : IClassFixture<TestsWebApplicationFactory<Program
     {
         // Arrange
         var userDetails = FakeUsersFactory.GetFakeUserDetails();
-        var authenticatedClient = await _factory.CreateAuthenticatedHttpClientForUserAsync(userDetails);
+        var authenticatedClient = await _factory.CreateAuthenticatedHttpClientAsync(userDetails);
         var client = authenticatedClient.client;
         var testUser = authenticatedClient.user;
         var details = FakeCondominiumsFactory.GetFakeNewCondominiumDetails();

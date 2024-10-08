@@ -2,8 +2,8 @@
 using System.Net.Mime;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using NextCondoApi.Entity;
 using NextCondoApi.Features.OccurrencesFeature.Services;
+using NextCondoApi.Features.OccurrencesFeature.Models;
 using NextCondoApi.Utils.ClaimsPrincipalExtension;
 
 namespace NextCondoApi.Controllers;
@@ -49,7 +49,7 @@ public class OccurrencesController : ControllerBase
         typeof(object),
         StatusCodes.Status201Created,
         MediaTypeNames.Application.Json)]
-    public async Task<IActionResult> AddAsync([FromForm] AddOccurrenceDTO data)
+    public async Task<IActionResult> AddAsync([FromForm] PostOccurrenceCommand data)
     {
         var result = await _occurrencesService.AddAsync(data, User.GetIdentity());
 
@@ -125,6 +125,11 @@ public class OccurrencesController : ControllerBase
     }
 
     [HttpDelete("{Id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(
+        typeof(ProblemDetails),
+        StatusCodes.Status404NotFound,
+        MediaTypeNames.Application.ProblemJson)]
     public async Task<IActionResult> DeleteAsync(string Id)
     {
         var success = await _occurrencesService.DeleteAsync(new Guid(Id));
@@ -140,5 +145,34 @@ public class OccurrencesController : ControllerBase
         }
 
         return NoContent();
+    }
+
+    [HttpPut]
+    [Consumes(MediaTypeNames.Multipart.FormData)]
+    public async Task<IActionResult> EditAsync([FromForm] PutOccurrenceCommand data)
+    {
+        var result = await _occurrencesService.UpdateAsync(data, User.GetIdentity());
+
+        if (result == 1)
+        {
+            return Problem(
+                title: "Occurrence not found",
+                detail: $"Occurrence {data.Id} not found",
+                statusCode: StatusCodes.Status404NotFound,
+                type: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404"
+            );
+        }
+
+        if (result == 2)
+        {
+            return Problem(
+                title: "Current condominium not found",
+                detail: "User does not have a current condominium",
+                statusCode: StatusCodes.Status404NotFound,
+                type: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404"
+            );
+        }
+
+        return Ok();
     }
 }
