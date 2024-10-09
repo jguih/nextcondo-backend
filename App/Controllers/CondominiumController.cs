@@ -3,8 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using NextCondoApi.Entity;
 using NextCondoApi.Features.CondominiumFeature.Services;
 using NextCondoApi.Features.CondominiumFeature.Models;
-using NextCondoApi.Utils.ClaimsPrincipalExtension;
 using System.Net.Mime;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace NextCondoApi.Controllers;
 
@@ -17,43 +17,20 @@ namespace NextCondoApi.Controllers;
 [ApiController]
 public class CondominiumController : ControllerBase
 {
-    private readonly ICondominiumsRepository _condominiumsRepository;
     private readonly ICondominiumService _condominiumService;
 
-    public CondominiumController(
-        ICondominiumsRepository condominiumRepository,
-        ICondominiumService condominiumService)
+    public CondominiumController(ICondominiumService condominiumService)
     {
-        _condominiumsRepository = condominiumRepository;
         _condominiumService = condominiumService;
     }
 
     [HttpPost]
     [Consumes(MediaTypeNames.Multipart.FormData)]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status201Created)]
     public async Task<IActionResult> AddAsync([FromForm] CreateCondominiumCommand data)
     {
-        var identity = User.GetIdentity();
-
-        Condominium newCondominium = new()
-        {
-            Name = data.Name,
-            Description = data.Description,
-            OwnerId = identity,
-        };
-
-        CondominiumUser newMember = new()
-        {
-            CondominiumId = newCondominium.Id,
-            RelationshipType = data.RelationshipType,
-            UserId = identity,
-        };
-
-        newCondominium.Members.Add(newMember);
-
-        await _condominiumsRepository.AddAsync(newCondominium);
-
-        return CreatedAtAction(nameof(GetMineCurrent), null, new { newCondominium.Id });
+        await _condominiumService.AddAsync(data);
+        return Created();
     }
 
     [HttpGet("mine")]
@@ -63,8 +40,7 @@ public class CondominiumController : ControllerBase
         MediaTypeNames.Application.Json)]
     public async Task<IActionResult> GetMineAsync()
     {
-        var identity = User.GetIdentity();
-        var userCondominiums = await _condominiumsRepository.GetDtoListAsync(identity);
+        var userCondominiums = await _condominiumService.GetMineAsync();
         return Ok(userCondominiums);
     }
 
@@ -74,10 +50,9 @@ public class CondominiumController : ControllerBase
         StatusCodes.Status200OK,
         MediaTypeNames.Application.Json)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    public async Task<IActionResult> GetMineCurrent()
+    public async Task<IActionResult> GetMineCurrentAsync()
     {
-        var identity = User.GetIdentity();
-        var current = await _condominiumService.GetCurrentAsync(identity);
+        var current = await _condominiumService.GetCurrentAsync();
 
         if (current is not null)
         {
@@ -85,5 +60,30 @@ public class CondominiumController : ControllerBase
         }
 
         return NoContent();
+    }
+
+    [HttpPost("join")]
+    [Consumes(MediaTypeNames.Multipart.FormData)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(
+        typeof(ProblemDetails),
+        StatusCodes.Status404NotFound,
+        MediaTypeNames.Application.ProblemJson)]
+    [SwaggerOperation(
+        summary: "Joins a condominium",
+        description: "Joins a condominium as current user using specified relationship type")]
+    public async Task<IActionResult> JoinAsync([FromForm] JoinCommand data)
+    {
+        var result = await _condominiumService.JoinAsync(data);
+        if (result is false)
+        {
+            return Problem(
+                title: "Condominium not found",
+                detail: "Condominium not found",
+                statusCode: StatusCodes.Status404NotFound,
+                type: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404"
+            );
+        }
+        return Ok();
     }
 }

@@ -75,6 +75,7 @@ public static class BuilderExtension
                     Description = "Public address"
                 });
             }
+            c.EnableAnnotations();
         });
     }
 

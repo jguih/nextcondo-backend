@@ -12,7 +12,7 @@ public interface ICurrentCondominiumRepository : IGenericRepository<CurrentCondo
     /// </summary>
     /// <param name="userId"></param>
     /// <returns></returns>
-    public Task<CondominiumDTO?> GetDtoFirstOrDefaultAsync(Guid? userId = default);
+    public Task<CondominiumDTO?> GetDtoAsync(Guid? userId = default);
     public Task<Guid?> GetCondominiumIdAsync(Guid? userId = default);
 }
 
@@ -26,7 +26,7 @@ public class CurrentCondominiumRepository : GenericRepository<CurrentCondominium
     {
     }
 
-    public async Task<CondominiumDTO?> GetDtoFirstOrDefaultAsync(Guid? userId)
+    public async Task<CondominiumDTO?> GetDtoAsync(Guid? userId)
     {
         var hasUserId = userId.HasValue && !userId.Value.Equals(Guid.Empty);
 

@@ -25,7 +25,7 @@ public class TenantsController : ControllerBase
     }
 
     [HttpGet]
-    [SwaggerOperation(summary: "Returns all tenants for current condominium", description: "Returns a list of all tenants for current user's current condominium")]
+    [SwaggerOperation(summary: "Returns all tenants for current condominium", description: "Returns a list of all tenants for user's current condominium")]
     [ProducesResponseType(
         typeof(List<TenantDTO>),
         StatusCodes.Status200OK,

@@ -8,7 +8,7 @@ namespace NextCondoApi.Features.CondominiumFeature.Services;
 public interface ICondominiumsRepository : IGenericRepository<Condominium>
 {
     public Task<List<CondominiumDTO>> GetDtoListAsync(Guid? userId = default);
-    public Task<Guid?> GetCondominiumIdFirstOrDefaultAsync(Guid? userId = default);
+    public Task<Guid?> GetIdAsync(Guid? userId = default, Guid? id = default);
 }
 
 public class CondominiumsRepository : GenericRepository<Condominium>, ICondominiumsRepository
@@ -57,17 +57,19 @@ public class CondominiumsRepository : GenericRepository<Condominium>, ICondomini
         return list;
     }
 
-    public async Task<Guid?> GetCondominiumIdFirstOrDefaultAsync(Guid? userId)
+    public async Task<Guid?> GetIdAsync(Guid? userId, Guid? id = default)
     {
         var hasUserId = userId.HasValue && !userId.Value.Equals(Guid.Empty);
+        var hasId = id.HasValue && !id.Value.Equals(Guid.Empty);
 
-        var condominiums = from condominium in db.Condominiums
-                           let members = condominium.Members
-                           where !hasUserId
-                                || condominium.OwnerId.Equals(userId)
-                                || members.Any(m => m.UserId.Equals(userId))
-                           select condominium.Id;
+        var query = from condominium in db.Condominiums
+                    let members = condominium.Members
+                    where (!hasUserId
+                         || condominium.OwnerId.Equals(userId)
+                         || members.Any(m => m.UserId.Equals(userId)))
+                         && (!hasId || condominium.Id == id)
+                    select condominium.Id;
 
-        return await condominiums.FirstOrDefaultAsync();
+        return await query.FirstOrDefaultAsync();
     }
 }
