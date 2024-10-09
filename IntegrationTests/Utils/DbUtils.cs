@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using NextCondoApi.Entity;
-using NextCondoApi.Features.CondominiumFeature.Services;
 using NextCondoApi.Features.Configuration;
+using NextCondoApi.Features.UsersFeature.Services;
 using NextCondoApi.Services;
 using Npgsql;
 using Respawn;

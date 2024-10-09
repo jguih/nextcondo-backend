@@ -4,7 +4,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using NextCondoApi;
 using NextCondoApi.Entity;
-using NextCondoApi.Models.DTO;
+using NextCondoApi.Features.UsersFeature.Models;
+using NextCondoApi.Features.UsersFeature.Services;
 using NextCondoApi.Services;
 using TestFakes;
 

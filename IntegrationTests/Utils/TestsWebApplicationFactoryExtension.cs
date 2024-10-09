@@ -2,6 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using NextCondoApi;
 using NextCondoApi.Entity;
+using NextCondoApi.Features.UsersFeature.Services;
 using NextCondoApi.Services;
 using TestFakes;
 

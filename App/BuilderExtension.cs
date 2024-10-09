@@ -9,11 +9,11 @@ using NextCondoApi.Features.AuthFeature.Services;
 using NextCondoApi.Features.CondominiumFeature.Services;
 using NextCondoApi.Features.Configuration;
 using NextCondoApi.Features.OccurrencesFeature.Services;
+using NextCondoApi.Features.UsersFeature.Services;
 using NextCondoApi.Services;
 using NextCondoApi.Services.SMTP;
 using System.Net.Mime;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
 
 namespace NextCondoApi;

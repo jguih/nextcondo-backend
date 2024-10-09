@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using NextCondoApi.Features.AuthFeature.Models;
 using NextCondoApi.Features.AuthFeature.Services;
-using NextCondoApi.Models.DTO;
+using NextCondoApi.Features.PublicFeature.Models;
 using NextCondoApi.Utils.ClaimsPrincipalExtension;
 using System.Net.Mime;
 using System.Security.Claims;

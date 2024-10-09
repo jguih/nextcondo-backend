@@ -1,7 +1,7 @@
 ﻿
 using NextCondoApi.Entity;
-using NextCondoApi.Models.DTO;
-using NextCondoApi.Services;
+using NextCondoApi.Features.UsersFeature.Models;
+using NextCondoApi.Features.UsersFeature.Services;
 
 namespace UnitTests.Fakes;
 

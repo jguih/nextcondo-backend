@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using NextCondoApi.Entity;
+using NextCondoApi.Features.UsersFeature.Services;
 using NextCondoApi.Services;
 using System.Security.Claims;
 
