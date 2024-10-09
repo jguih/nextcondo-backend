@@ -2,11 +2,11 @@
 using Bogus;
 using Bogus.Extensions;
 using NextCondoApi.Entity;
-using NextCondoApi.Models.DTO;
+using NextCondoApi.Features.CondominiumFeature.Models;
 
 namespace TestFakes;
 
-public class NewCondominiumDetails : AddCondominiumDTO { }
+public class NewCondominiumDetails : CreateCondominiumCommand { }
 
 public class FakeCondominiumsFactory
 {

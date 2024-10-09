@@ -1,7 +1,7 @@
 using IntegrationTests.Utils;
 using Newtonsoft.Json;
 using NextCondoApi;
-using NextCondoApi.Models.DTO;
+using NextCondoApi.Features.CondominiumFeature.Models;
 using System.Net;
 using TestFakes;
 

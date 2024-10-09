@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using NextCondoApi.Entity;
 using NextCondoApi.Features.CondominiumFeature.Services;
-using NextCondoApi.Models.DTO;
+using NextCondoApi.Features.CondominiumFeature.Models;
 using NextCondoApi.Utils.ClaimsPrincipalExtension;
 using System.Net.Mime;
 
@@ -31,7 +31,7 @@ public class CondominiumController : ControllerBase
     [HttpPost]
     [Consumes(MediaTypeNames.Multipart.FormData)]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<IActionResult> AddAsync([FromForm] AddCondominiumDTO data)
+    public async Task<IActionResult> AddAsync([FromForm] CreateCondominiumCommand data)
     {
         var identity = User.GetIdentity();
 

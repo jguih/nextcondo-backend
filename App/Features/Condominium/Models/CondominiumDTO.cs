@@ -1,20 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using NextCondoApi.Entity;
-using NextCondoApi.Features.Validation;
-using System.ComponentModel.DataAnnotations;
 
-namespace NextCondoApi.Models.DTO;
-
-public class AddCondominiumDTO
-{
-    [Required]
-    [StringLength(100)]
-    public required string Name { get; set; }
-    [StringLength(2000)]
-    public string? Description { get; set; }
-    [Required]
-    public required CondominiumUserRelationshipType RelationshipType { get; set; }
-}
+namespace NextCondoApi.Features.CondominiumFeature.Models;
 
 public class CondominiumDTO
 {
@@ -24,7 +9,7 @@ public class CondominiumDTO
         public required string FullName { get; set; }
     }
 
-    public class CondominiumMemberDTO 
+    public class CondominiumMemberDTO
     {
         public required Guid Id { get; set; }
         public required string FullName { get; set; }

@@ -1,8 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using NextCondoApi.Entity;
-using NextCondoApi.Models.DTO;
+using NextCondoApi.Features.UsersFeature.Models;
+using NextCondoApi.Services;
 
-namespace NextCondoApi.Services;
+namespace NextCondoApi.Features.UsersFeature.Services;
 
 public interface IUsersRepository : IGenericRepository<User>
 {

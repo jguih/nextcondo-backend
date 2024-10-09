@@ -1,16 +1,5 @@
-using NextCondoApi.Entity;
-using System.ComponentModel.DataAnnotations;
 
-namespace NextCondoApi.Models.DTO;
-
-public class EditUserDTO
-{
-    [MaxLength(255)]
-    public string? FullName { get; set; }
-    [Phone]
-    [MaxLength(30)]
-    public string? Phone { get; set; }
-}
+namespace NextCondoApi.Features.UsersFeature.Models;
 
 public class UserDTO
 {

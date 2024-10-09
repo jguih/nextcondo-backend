@@ -2,7 +2,7 @@
 using Microsoft.Extensions.Options;
 using NextCondoApi.Entity;
 using NextCondoApi.Features.Configuration;
-using NextCondoApi.Models.DTO;
+using NextCondoApi.Features.PublicFeature.Models;
 using System.Net.Mime;
 
 namespace NextCondoApi.Controllers
@@ -59,7 +59,7 @@ namespace NextCondoApi.Controllers
                     detail: "Public URL not found",
                     statusCode: StatusCodes.Status404NotFound,
                     type: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404") :
-                Ok(new PublicUrlDTO(){ Url = publicURL });
+                Ok(new PublicUrlDTO() { Url = publicURL });
         }
     }
 }

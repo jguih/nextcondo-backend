@@ -1,5 +1,5 @@
 ﻿using NextCondoApi.Entity;
-using NextCondoApi.Models.DTO;
+using NextCondoApi.Features.CondominiumFeature.Models;
 
 namespace NextCondoApi.Features.CondominiumFeature.Services;
 

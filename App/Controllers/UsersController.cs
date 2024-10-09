@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using NextCondoApi.Models.DTO;
-using NextCondoApi.Services;
+using NextCondoApi.Features.UsersFeature.Models;
+using NextCondoApi.Features.UsersFeature.Services;
 using NextCondoApi.Utils.ClaimsPrincipalExtension;
 using System.Net.Mime;
 

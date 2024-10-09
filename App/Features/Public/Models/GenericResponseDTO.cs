@@ -1,4 +1,4 @@
-﻿namespace NextCondoApi.Models.DTO;
+﻿namespace NextCondoApi.Features.PublicFeature.Models;
 
 public class GenericResponseDTO
 {

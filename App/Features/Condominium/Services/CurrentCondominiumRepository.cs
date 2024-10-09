@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using NextCondoApi.Entity;
-using NextCondoApi.Models.DTO;
+using NextCondoApi.Features.CondominiumFeature.Models;
 using NextCondoApi.Services;
 
 namespace NextCondoApi.Features.CondominiumFeature.Services;

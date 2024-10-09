@@ -2,7 +2,7 @@
 using Moq;
 using NextCondoApi.Entity;
 using NextCondoApi.Features.CondominiumFeature.Services;
-using NextCondoApi.Models.DTO;
+using NextCondoApi.Features.CondominiumFeature.Models;
 
 namespace UnitTests;
 
