@@ -3,6 +3,7 @@ using System.Net.Mime;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using NextCondoApi.Features.TenantsFeature.Models;
+using NextCondoApi.Features.TenantsFeature.Services;
 using Swashbuckle.AspNetCore.Annotations;
 
 namespace NextCondoApi.Controllers;
@@ -16,6 +17,13 @@ namespace NextCondoApi.Controllers;
 [ApiController]
 public class TenantsController : ControllerBase
 {
+    private readonly ITenantsService _tenantsService;
+
+    public TenantsController(ITenantsService tenantsService)
+    {
+        _tenantsService = tenantsService;
+    }
+
     [HttpGet]
     [SwaggerOperation(summary: "Returns all tenants for current condominium", description: "Returns a list of all tenants for current user's current condominium")]
     [ProducesResponseType(
@@ -24,6 +32,7 @@ public class TenantsController : ControllerBase
         MediaTypeNames.Application.Json)]
     public async Task<IActionResult> GetAsync()
     {
-        return Ok();
+        var list = await _tenantsService.GetListAsync();
+        return Ok(list);
     }
 }

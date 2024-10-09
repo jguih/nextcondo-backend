@@ -12,7 +12,7 @@ public class CondominiumUserEntityTypeConfiguration : IEntityTypeConfiguration<C
 
         builder
             .HasOne(condoUser => condoUser.User)
-            .WithMany()
+            .WithMany(user => user.CondominiumList)
             .HasForeignKey(condoUser => condoUser.UserId)
             .IsRequired();
 

@@ -31,7 +31,7 @@ public interface IOccurrencesService
     /// <para>(0, occurrence) on success</para>
     /// </returns>
     public Task<(int result, OccurrenceDTO? occurrence)> GetByIdAsync(Guid occurrenceId, Guid userId);
-    public Task<List<OccurrenceDTO>> GetCurrentAsync(Guid userId);
+    public Task<List<OccurrenceDTO>> GetListAsync(Guid userId);
     public Task<bool> DeleteAsync(Guid Id);
     /// <summary>
     /// Update an occurrence
@@ -111,7 +111,7 @@ public class OccurrencesService : IOccurrencesService
         return (0, occurrence);
     }
 
-    public async Task<List<OccurrenceDTO>> GetCurrentAsync(Guid userId)
+    public async Task<List<OccurrenceDTO>> GetListAsync(Guid userId)
     {
         var current = await _currentCondominiumRepository.GetCondominiumIdAsync(userId);
 

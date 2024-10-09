@@ -120,7 +120,7 @@ public class OccurrencesController : ControllerBase
     public async Task<IActionResult> GetCurrentAsync()
     {
         var identity = User.GetIdentity();
-        var result = await _occurrencesService.GetCurrentAsync(identity);
+        var result = await _occurrencesService.GetListAsync(identity);
         return Ok(result);
     }
 

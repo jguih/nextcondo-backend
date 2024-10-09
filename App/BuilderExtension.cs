@@ -9,6 +9,7 @@ using NextCondoApi.Features.AuthFeature.Services;
 using NextCondoApi.Features.CondominiumFeature.Services;
 using NextCondoApi.Features.Configuration;
 using NextCondoApi.Features.OccurrencesFeature.Services;
+using NextCondoApi.Features.TenantsFeature.Services;
 using NextCondoApi.Features.UsersFeature.Services;
 using NextCondoApi.Services;
 using NextCondoApi.Services.SMTP;
@@ -99,13 +100,16 @@ public static class BuilderExtension
         builder.Services.AddScoped<ICurrentCondominiumRepository, CurrentCondominiumRepository>();
         builder.Services.AddScoped<IOccurrencesRepository, OccurrencesRepository>();
         builder.Services.AddScoped<IOccurrenceTypesRepository, OccurrenceTypesRepository>();
+        builder.Services.AddScoped<ICondominiumUserRepository, CondominiumUserRepository>();
 
+        builder.Services.AddScoped<ICurrentUserContext, CurrentUserContext>();
         builder.Services.AddScoped<IAuthServiceHelper, AuthServiceHelper>();
         builder.Services.AddScoped<IAuthService, AuthService>();
         builder.Services.AddScoped<ISMTPService, SMTPService>();
         builder.Services.AddScoped<ICondominiumService, CondominiumService>();
         builder.Services.AddScoped(typeof(OccurrencesService));
         builder.Services.AddScoped<IEmailVerificationService, EmailVerificationService>();
+        builder.Services.AddScoped<ITenantsService, TenantsService>();
     }
 
     public static void AddRateLimitingPolicies(this WebApplicationBuilder builder)

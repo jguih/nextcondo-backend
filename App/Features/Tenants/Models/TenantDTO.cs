@@ -12,4 +12,5 @@ public class TenantDTO
     public required string Email { get; set; }
     public string? Phone { get; set; }
     public required TenantRoleDTO Role { get; set; }
+    public required string RelationshipType { get; set; }
 }

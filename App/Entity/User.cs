@@ -13,6 +13,7 @@ public class User : BaseEntity
     public string? Phone { get; set; }
     public bool IsEmailVerified { get; set; }
     public DateTimeOffset? EmailVerifiedAt { get; set; }
+    public ICollection<CondominiumUser> CondominiumList { get; set; } = [];
 
     public override object GetId()
     {
