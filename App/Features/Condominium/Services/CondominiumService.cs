@@ -11,9 +11,9 @@ public interface ICondominiumService
     /// </summary>
     /// <returns></returns>
     public Task<CondominiumDTO?> GetCurrentAsync();
-    public Task AddAsync(CreateCondominiumCommand data);
+    public Task<Guid> AddAsync(CreateCondominiumCommand data);
     public Task<List<CondominiumDTO>> GetMineAsync();
-    public Task<bool> JoinAsync(JoinCommand data);
+    public Task<int> JoinAsync(JoinCommand data);
 }
 
 public class CondominiumService : ICondominiumService
@@ -35,7 +35,7 @@ public class CondominiumService : ICondominiumService
         _condominiumUserRepository = condominiumUserRepository;
     }
 
-    public async Task AddAsync(CreateCondominiumCommand data)
+    public async Task<Guid> AddAsync(CreateCondominiumCommand data)
     {
         var identity = _currentUserContext.GetIdentity();
         Condominium newCondominium = new()
@@ -52,6 +52,7 @@ public class CondominiumService : ICondominiumService
         };
         newCondominium.Members.Add(newMember);
         await _condominiumsRepository.AddAsync(newCondominium);
+        return newCondominium.Id;
     }
 
     public async Task<CondominiumDTO?> GetCurrentAsync()
@@ -89,23 +90,31 @@ public class CondominiumService : ICondominiumService
         return userCondominiums;
     }
 
-    public async Task<bool> JoinAsync(JoinCommand data)
+    public async Task<int> JoinAsync(JoinCommand data)
     {
-        var condominium = await _condominiumsRepository.GetIdAsync(id: data.CondominiumId);
+        var condominiumId = await _condominiumsRepository.GetIdAsync(id: data.CondominiumId);
 
-        if (condominium is null || !condominium.HasValue || condominium.Value.Equals(Guid.Empty))
+        if (condominiumId is null || !condominiumId.HasValue || condominiumId.Value.Equals(Guid.Empty))
         {
-            return false;
+            return 2;
         }
 
         var identity = _currentUserContext.GetIdentity();
-        CondominiumUser member = new()
+        var membershipExists = await _condominiumUserRepository.ExistsAsync(identity, condominiumId);
+
+        if (membershipExists)
+        {
+            return 1;
+        }
+
+        CondominiumUser membership = new()
         {
             RelationshipType = data.RelationshipType,
-            CondominiumId = condominium.Value,
+            CondominiumId = condominiumId.Value,
             UserId = identity,
         };
-        await _condominiumUserRepository.AddAsync(member);
-        return true;
+        await _condominiumUserRepository.AddAsync(membership);
+
+        return 0;
     }
 }

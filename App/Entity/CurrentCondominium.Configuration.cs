@@ -11,14 +11,17 @@ public class CurrentCondominiumEntityTypeConfiguration : IEntityTypeConfiguratio
             .HasKey(currentCondo => new { currentCondo.UserId, currentCondo.CondominiumId });
 
         builder
+            .HasIndex(currentCondo => new { currentCondo.UserId, currentCondo.CondominiumId });
+
+        builder
             .HasOne(currentCondo => currentCondo.User)
             .WithOne()
             .HasForeignKey<CurrentCondominium>(currentCondo => currentCondo.UserId);
 
         builder
             .HasOne(currentCondo => currentCondo.Condominium)
-            .WithOne()
-            .HasForeignKey<CurrentCondominium>(currentCondo => currentCondo.CondominiumId);
+            .WithMany()
+            .HasForeignKey(currentCondo => currentCondo.CondominiumId);
 
         builder
             .Navigation(currentCondo => currentCondo.User)

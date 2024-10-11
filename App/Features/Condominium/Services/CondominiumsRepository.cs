@@ -57,7 +57,7 @@ public class CondominiumsRepository : GenericRepository<Condominium>, ICondomini
         return list;
     }
 
-    public async Task<Guid?> GetIdAsync(Guid? userId, Guid? id = default)
+    public async Task<Guid?> GetIdAsync(Guid? userId = default, Guid? id = default)
     {
         var hasUserId = userId.HasValue && !userId.Value.Equals(Guid.Empty);
         var hasId = id.HasValue && !id.Value.Equals(Guid.Empty);

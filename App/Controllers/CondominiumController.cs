@@ -29,8 +29,8 @@ public class CondominiumController : ControllerBase
     [ProducesResponseType(StatusCodes.Status201Created)]
     public async Task<IActionResult> AddAsync([FromForm] CreateCondominiumCommand data)
     {
-        await _condominiumService.AddAsync(data);
-        return Created();
+        var Id = await _condominiumService.AddAsync(data);
+        return CreatedAtAction(nameof(GetMine), new { Id }, new { Id });
     }
 
     [HttpGet("mine")]
@@ -38,7 +38,7 @@ public class CondominiumController : ControllerBase
         typeof(List<CondominiumDTO>),
         StatusCodes.Status200OK,
         MediaTypeNames.Application.Json)]
-    public async Task<IActionResult> GetMineAsync()
+    public async Task<IActionResult> GetMine()
     {
         var userCondominiums = await _condominiumService.GetMineAsync();
         return Ok(userCondominiums);
@@ -69,19 +69,32 @@ public class CondominiumController : ControllerBase
         typeof(ProblemDetails),
         StatusCodes.Status404NotFound,
         MediaTypeNames.Application.ProblemJson)]
+    [ProducesResponseType(
+        typeof(ProblemDetails),
+        StatusCodes.Status400BadRequest,
+        MediaTypeNames.Application.ProblemJson)]
     [SwaggerOperation(
         summary: "Joins a condominium",
         description: "Joins a condominium as current user using specified relationship type")]
     public async Task<IActionResult> JoinAsync([FromForm] JoinCommand data)
     {
         var result = await _condominiumService.JoinAsync(data);
-        if (result is false)
+        if (result == 2)
         {
             return Problem(
                 title: "Condominium not found",
                 detail: "Condominium not found",
                 statusCode: StatusCodes.Status404NotFound,
                 type: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404"
+            );
+        }
+        if (result == 1)
+        {
+            return Problem(
+                title: "User is already a member",
+                detail: $"Failed to create relationship. User is already a member of condominium with Id {data.CondominiumId}",
+                statusCode: StatusCodes.Status400BadRequest,
+                type: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400"
             );
         }
         return Ok();
