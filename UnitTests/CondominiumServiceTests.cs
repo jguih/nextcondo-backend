@@ -3,6 +3,7 @@ using Moq;
 using NextCondoApi.Entity;
 using NextCondoApi.Features.CondominiumFeature.Services;
 using NextCondoApi.Features.CondominiumFeature.Models;
+using NextCondoApi.Services;
 
 namespace UnitTests;
 
@@ -11,16 +12,22 @@ public class CondominiumServiceTests
     private readonly CondominiumService _condominiumService;
     private readonly Mock<ICondominiumsRepository> _condominiumsRepository;
     private readonly Mock<ICurrentCondominiumRepository> _currentCondominiumRepository;
+    private readonly Mock<ICurrentUserContext> _currentUserContextMock;
+    private readonly Mock<ICondominiumUserRepository> _condominiumUserRepositoryMock;
     private readonly Faker _faker;
 
     public CondominiumServiceTests()
     {
         _condominiumsRepository = new Mock<ICondominiumsRepository>();
         _currentCondominiumRepository = new Mock<ICurrentCondominiumRepository>();
+        _currentUserContextMock = new Mock<ICurrentUserContext>();
+        _condominiumUserRepositoryMock = new Mock<ICondominiumUserRepository>();
         _faker = new Faker();
         _condominiumService = new CondominiumService(
             _currentCondominiumRepository.Object,
-            _condominiumsRepository.Object);
+            _condominiumsRepository.Object,
+            _currentUserContextMock.Object,
+            _condominiumUserRepositoryMock.Object);
     }
 
     [Fact]
@@ -28,12 +35,16 @@ public class CondominiumServiceTests
     {
         // Arrange
         var dtoMock = new Mock<CondominiumDTO>();
+        var userId = _faker.Random.Guid();
         _currentCondominiumRepository
-            .Setup(mock => mock.GetDtoAsync(It.IsAny<Guid>()))
+            .Setup(mock => mock.GetDtoAsync(userId))
             .Returns(Task.FromResult(dtoMock.Object)!);
+        _currentUserContextMock
+            .Setup(mock => mock.GetIdentity())
+            .Returns(userId);
 
         // Act
-        var result = await _condominiumService.GetCurrentAsync(_faker.Random.Guid());
+        var result = await _condominiumService.GetCurrentAsync();
 
         // Assert
         Assert.NotNull(result);
@@ -47,15 +58,18 @@ public class CondominiumServiceTests
         CondominiumDTO? condoDto = null;
         Guid? firstCondoId = null;
         var userId = _faker.Random.Guid();
+        _currentUserContextMock
+            .Setup(mock => mock.GetIdentity())
+            .Returns(userId);
         _currentCondominiumRepository
             .Setup(mock => mock.GetDtoAsync(userId))
             .Returns(Task.FromResult(condoDto));
         _condominiumsRepository
-            .Setup(mock => mock.GetIdAsync(userId))
+            .Setup(mock => mock.GetIdAsync(userId, null))
             .Returns(Task.FromResult(firstCondoId));
 
         // Act
-        var result = await _condominiumService.GetCurrentAsync(userId);
+        var result = await _condominiumService.GetCurrentAsync();
 
         // Assert
         Assert.Null(result);
@@ -69,16 +83,19 @@ public class CondominiumServiceTests
         CondominiumDTO? condoDto = null;
         Guid? firstCondoId = _faker.Random.Guid();
         var userId = _faker.Random.Guid();
+        _currentUserContextMock
+            .Setup(mock => mock.GetIdentity())
+            .Returns(userId);
         _currentCondominiumRepository
             .SetupSequence(mock => mock.GetDtoAsync(userId))
             .Returns(Task.FromResult(condoDto))
             .Returns(Task.FromResult(condoDtoMock.Object)!);
         _condominiumsRepository
-            .Setup(mock => mock.GetIdAsync(userId))
+            .Setup(mock => mock.GetIdAsync(userId, null))
             .Returns(Task.FromResult(firstCondoId));
 
         // Act
-        var result = await _condominiumService.GetCurrentAsync(userId);
+        var result = await _condominiumService.GetCurrentAsync();
 
         // Assert
         _currentCondominiumRepository
