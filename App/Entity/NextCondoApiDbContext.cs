@@ -25,6 +25,7 @@ public class NextCondoApiDbContext : DbContext
     public DbSet<CurrentCondominium> CurrentCondominium { get; set; }
     public DbSet<Occurrence> Occurrences { get; set; }
     public DbSet<OccurrenceType> OccurrenceTypes { get; set; }
+    public DbSet<CommonArea> CommonAreas { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -36,6 +37,7 @@ public class NextCondoApiDbContext : DbContext
         new CurrentCondominiumEntityTypeConfiguration().Configure(modelBuilder.Entity<CurrentCondominium>());
         new OccurrenceEntityTypeConfiguration().Configure(modelBuilder.Entity<Occurrence>());
         new OccurrenceTypeEntityTypeConfiguration().Configure(modelBuilder.Entity<OccurrenceType>());
+        new CommonAreaEntityTypeConfiguration().Configure(modelBuilder.Entity<CommonArea>());
         base.OnModelCreating(modelBuilder);
     }
 
