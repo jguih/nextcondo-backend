@@ -1,6 +1,6 @@
-namespace NextCondoApi.Entity;
+namespace NextCondoApi.Features.CommonAreasFeature.Models;
 
-public class CommonArea : BaseEntity
+public class CommonAreaDTO
 {
     public int Id { get; set; }
     public required string Name { get; set; }
@@ -8,11 +8,4 @@ public class CommonArea : BaseEntity
     public TimeOnly StartTime { get; set; }
     public TimeOnly EndTime { get; set; }
     public TimeOnly TimeInterval { get; set; }
-    public Guid CondominiumId { get; set; }
-    public Condominium? Condominium { get; set; }
-
-    public override object GetId()
-    {
-        return Id;
-    }
 }

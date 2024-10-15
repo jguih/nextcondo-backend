@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.OpenApi.Models;
 using NextCondoApi.Entity;
 using NextCondoApi.Features.AuthFeature.Services;
+using NextCondoApi.Features.CommonAreasFeature.Services;
 using NextCondoApi.Features.CondominiumFeature.Services;
 using NextCondoApi.Features.Configuration;
 using NextCondoApi.Features.OccurrencesFeature.Services;
@@ -90,9 +91,6 @@ public static class BuilderExtension
 
     public static void AddRepositories(this WebApplicationBuilder builder)
     {
-        builder.Services.AddHttpContextAccessor();
-        builder.Services.AddSingleton<IPasswordHasher<User>, PasswordHasher<User>>();
-        builder.Services.AddDataProtection();
 
         builder.Services.AddScoped<IUsersRepository, UsersRepository>();
         builder.Services.AddScoped<IRolesRepository, RolesRepository>();
@@ -102,7 +100,14 @@ public static class BuilderExtension
         builder.Services.AddScoped<IOccurrencesRepository, OccurrencesRepository>();
         builder.Services.AddScoped<IOccurrenceTypesRepository, OccurrenceTypesRepository>();
         builder.Services.AddScoped<ICondominiumUserRepository, CondominiumUserRepository>();
+        builder.Services.AddScoped<ICommonAreasRepository, CommonAreasRepository>();
+    }
 
+    public static void AddServices(this WebApplicationBuilder builder)
+    {
+        builder.Services.AddHttpContextAccessor();
+        builder.Services.AddSingleton<IPasswordHasher<User>, PasswordHasher<User>>();
+        builder.Services.AddDataProtection();
         builder.Services.AddScoped<ICurrentUserContext, CurrentUserContext>();
         builder.Services.AddScoped<IAuthServiceHelper, AuthServiceHelper>();
         builder.Services.AddScoped<IAuthService, AuthService>();
@@ -111,6 +116,7 @@ public static class BuilderExtension
         builder.Services.AddScoped(typeof(OccurrencesService));
         builder.Services.AddScoped<IEmailVerificationService, EmailVerificationService>();
         builder.Services.AddScoped<ITenantsService, TenantsService>();
+        builder.Services.AddScoped<ICommonAreasService, CommonAreasService>();
     }
 
     public static void AddRateLimitingPolicies(this WebApplicationBuilder builder)

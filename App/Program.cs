@@ -18,6 +18,7 @@ public class Program
         builder.AddAuth();
         builder.AddSwagger(configuration);
         builder.AddRepositories();
+        builder.AddServices();
         builder.AddRateLimitingPolicies();
         builder.AddConfigurationOptions(configuration);
         builder.Services.AddEndpointsApiExplorer();
