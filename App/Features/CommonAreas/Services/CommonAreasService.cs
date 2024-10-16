@@ -91,7 +91,8 @@ public class CommonAreasService : ICommonAreasService
             {
                 Slot slot = new()
                 {
-                    StartAt = startAt
+                    StartAt = startAt,
+                    Available = true,
                 };
                 timeSlot.Slots.Add(slot);
                 startAt = startAt.Add(commonArea.TimeInterval.ToTimeSpan());
