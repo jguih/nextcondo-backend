@@ -54,6 +54,34 @@ public class CommonAreasController : ControllerBase
         return Ok(list);
     }
 
+    [HttpPost("reservation")]
+    [Consumes(MediaTypeNames.Multipart.FormData)]
+    [ProducesResponseType(
+        typeof(CommonAreaDTO),
+        StatusCodes.Status200OK,
+        MediaTypeNames.Application.Json)]
+    [ProducesResponseType(
+        typeof(ProblemDetails),
+        StatusCodes.Status404NotFound,
+        MediaTypeNames.Application.ProblemJson)]
+    [SwaggerOperation(
+        summary: "Creates a reservation",
+        description: "Creates a new reservation using specified parameters")]
+    public async Task<IActionResult> CreateReservationAsync([FromForm] CreateReservationCommand data)
+    {
+        var reservationId = await _commonAreasService.CreateReservationAsync(data);
+        if (reservationId is null)
+        {
+            return Problem(
+                title: "Common area not found",
+                detail: "Common area not found",
+                statusCode: StatusCodes.Status404NotFound,
+                type: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404"
+            );
+        }
+        return Ok();
+    }
+
     [HttpGet("{Id}")]
     [ProducesResponseType(
         typeof(CommonAreaDTO),
