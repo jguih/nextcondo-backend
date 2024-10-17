@@ -63,6 +63,25 @@ public static class DbUtils
         return condominium;
     }
 
+    public static async Task<CommonArea> AddCommonAreaAsync(
+        NextCondoApiDbContext db,
+        CommonAreaDetails data,
+        Guid condoId)
+    {
+        CommonArea newCommonArea = new()
+        {
+            Name = data.Name,
+            Description = data.Description,
+            CondominiumId = condoId,
+            StartTime = data.StartTime,
+            EndTime = data.EndTime,
+            TimeInterval = data.TimeInterval
+        };
+        await db.CommonAreas.AddAsync(newCommonArea);
+        await db.SaveChangesAsync();
+        return newCommonArea;
+    }
+
     public static async Task CleanUpAsync(IOptions<DbOptions> configuration)
     {
         var connectionString = NextCondoApiDbContext.GetConnectionString(configuration);

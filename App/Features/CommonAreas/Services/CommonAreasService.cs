@@ -117,9 +117,9 @@ public class CommonAreasService : ICommonAreasService
             };
 
             var startAt = commonArea.StartTime;
-            var maxTimeSlots = 100;
+            var maxTimeSlots = 50;
             var timeSlotsIndex = 0;
-            while (startAt.CompareTo(commonArea.EndTime) <= 0 || timeSlotsIndex == maxTimeSlots)
+            while (startAt.CompareTo(commonArea.EndTime) < 0 && timeSlotsIndex != maxTimeSlots)
             {
                 var existingReservation = reservationsForDate
                     .Find(reservation => reservation.StartAt.CompareTo(startAt) == 0);
