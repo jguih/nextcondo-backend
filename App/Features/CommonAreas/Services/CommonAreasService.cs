@@ -11,7 +11,7 @@ public interface ICommonAreasService
     public Task<List<TimeSlot>?> GetTimeSlotsAsync(int Id);
     public Task<CommonAreaDTO?> GetDtoAsync(int? Id);
     public Task<List<CommonAreaDTO>> GetDtoListAsync();
-    public Task<(CreateReservationResult result, int? reservationId)> CreateReservationAsync(CreateReservationCommand data);
+    public Task<(CreateReservationResult result, int? reservationId)> CreateReservationAsync(int commonAreaId, CreateReservationCommand data);
 }
 
 public class CommonAreasService : ICommonAreasService
@@ -49,13 +49,13 @@ public class CommonAreasService : ICommonAreasService
         return newCommonArea.Id;
     }
 
-    public async Task<(CreateReservationResult result, int? reservationId)> CreateReservationAsync(CreateReservationCommand data)
+    public async Task<(CreateReservationResult result, int? reservationId)> CreateReservationAsync(int commonAreaId, CreateReservationCommand data)
     {
         var identity = _currentUserContext.GetIdentity();
         var currentCondoId = await _currentUserContext.GetCurrentCondominiumIdAsync();
         var commonArea = await _commonAreasRepository
             .GetAsync(
-                id: data.CommonAreaId,
+                id: commonAreaId,
                 condominiumId: currentCondoId);
 
         if (commonArea is null)

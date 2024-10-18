@@ -1,6 +1,5 @@
 
 using Bogus;
-using Bogus.Extensions;
 using Moq;
 using NextCondoApi.Entity;
 using NextCondoApi.Features.CommonAreasFeature.Models;
@@ -145,13 +144,12 @@ public class CommonAreasServiceTests
             .Returns(Task.FromResult<CommonArea?>(null));
         CreateReservationCommand data = new()
         {
-            CommonAreaId = commonAreaId,
             Date = today,
             StartAt = TimeOnly.Parse("01:00")
         };
 
         // Act
-        var (result, reservationId) = await _commonAreasService.CreateReservationAsync(data);
+        var (result, reservationId) = await _commonAreasService.CreateReservationAsync(commonAreaId, data);
 
         // Assert
         Assert.Equal(CreateReservationResult.CommonAreaNotFound, result);
@@ -178,13 +176,12 @@ public class CommonAreasServiceTests
             .Returns(Task.FromResult<CommonArea?>(commonArea));
         CreateReservationCommand data = new()
         {
-            CommonAreaId = commonArea.Id,
             Date = today,
             StartAt = TimeOnly.Parse("01:30")
         };
 
         // Act
-        var (result, reservationId) = await _commonAreasService.CreateReservationAsync(data);
+        var (result, reservationId) = await _commonAreasService.CreateReservationAsync(commonArea.Id, data);
 
         // Assert
         Assert.Equal(CreateReservationResult.InvalidTimeSlot, result);
@@ -224,13 +221,12 @@ public class CommonAreasServiceTests
             .Returns(Task.FromResult(commonAreaReservationList));
         CreateReservationCommand data = new()
         {
-            CommonAreaId = commonArea.Id,
             Date = today,
             StartAt = reservationTime
         };
 
         // Act
-        var (result, reservationId) = await _commonAreasService.CreateReservationAsync(data);
+        var (result, reservationId) = await _commonAreasService.CreateReservationAsync(commonArea.Id, data);
 
         // Assert
         Assert.Equal(CreateReservationResult.UnavailableTimeSlot, result);
@@ -258,13 +254,12 @@ public class CommonAreasServiceTests
             .Returns(Task.FromResult<CommonArea?>(commonArea));
         CreateReservationCommand data = new()
         {
-            CommonAreaId = commonArea.Id,
             Date = today,
             StartAt = reservationTime
         };
 
         // Act
-        var (result, reservationId) = await _commonAreasService.CreateReservationAsync(data);
+        var (result, reservationId) = await _commonAreasService.CreateReservationAsync(commonArea.Id, data);
 
         // Assert
         Assert.Equal(CreateReservationResult.Created, result);

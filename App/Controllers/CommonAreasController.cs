@@ -46,7 +46,7 @@ public class CommonAreasController : ControllerBase
         StatusCodes.Status200OK,
         MediaTypeNames.Application.Json)]
     [SwaggerOperation(
-        summary: "Returns all common areas for current condominium",
+        summary: "Returns all common areas",
         description: "Returns all common areas for user's current condominium")]
     public async Task<IActionResult> GetAsync()
     {
@@ -54,7 +54,7 @@ public class CommonAreasController : ControllerBase
         return Ok(list);
     }
 
-    [HttpPost("reservation")]
+    [HttpPost("{Id}/reservation")]
     [Consumes(MediaTypeNames.Multipart.FormData)]
     [ProducesResponseType(
         typeof(object),
@@ -66,10 +66,10 @@ public class CommonAreasController : ControllerBase
         MediaTypeNames.Application.ProblemJson)]
     [SwaggerOperation(
         summary: "Creates a reservation",
-        description: "Creates a new reservation using specified parameters")]
-    public async Task<IActionResult> CreateReservationAsync([FromForm] CreateReservationCommand data)
+        description: "Creates a new reservation on current condominium using specified parameters")]
+    public async Task<IActionResult> CreateReservationAsync(int Id, [FromForm] CreateReservationCommand data)
     {
-        var (result, reservationId) = await _commonAreasService.CreateReservationAsync(data);
+        var (result, _) = await _commonAreasService.CreateReservationAsync(Id, data);
         if (result == CreateReservationResult.CommonAreaNotFound)
         {
             return Problem(
@@ -97,7 +97,7 @@ public class CommonAreasController : ControllerBase
                 type: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400"
             );
         }
-        return Ok(new { Id = reservationId });
+        return Ok();
     }
 
     [HttpGet("{Id}")]
@@ -110,7 +110,7 @@ public class CommonAreasController : ControllerBase
         StatusCodes.Status404NotFound,
         MediaTypeNames.Application.ProblemJson)]
     [SwaggerOperation(
-        summary: "Returns a common area for current condominium",
+        summary: "Returns a common area",
         description: "Returns a common area for user's current condominium with specified Id")]
     public async Task<IActionResult> GetById(int Id)
     {
@@ -138,7 +138,7 @@ public class CommonAreasController : ControllerBase
         MediaTypeNames.Application.ProblemJson)]
     [SwaggerOperation(
         summary: "Returns all time slots for common area",
-        description: "Returns time slots for the next 7 days for common area with specified Id")]
+        description: "Returns time slots for the next 7 days for a current condominium's common area with specified Id")]
     public async Task<IActionResult> GetTimeSlotsAsync(int Id)
     {
         var timeSlots = await _commonAreasService.GetTimeSlotsAsync(Id);
