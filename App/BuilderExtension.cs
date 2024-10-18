@@ -118,6 +118,7 @@ public static class BuilderExtension
         builder.Services.AddScoped<IEmailVerificationService, EmailVerificationService>();
         builder.Services.AddScoped<ITenantsService, TenantsService>();
         builder.Services.AddScoped<ICommonAreasService, CommonAreasService>();
+        builder.Services.AddScoped<ITimeSlotService, TimeSlotService>();
     }
 
     public static void AddRateLimitingPolicies(this WebApplicationBuilder builder)

@@ -57,7 +57,7 @@ public class CommonAreasController : ControllerBase
     [HttpPost("reservation")]
     [Consumes(MediaTypeNames.Multipart.FormData)]
     [ProducesResponseType(
-        typeof(CommonAreaDTO),
+        typeof(object),
         StatusCodes.Status200OK,
         MediaTypeNames.Application.Json)]
     [ProducesResponseType(
@@ -69,8 +69,8 @@ public class CommonAreasController : ControllerBase
         description: "Creates a new reservation using specified parameters")]
     public async Task<IActionResult> CreateReservationAsync([FromForm] CreateReservationCommand data)
     {
-        var reservationId = await _commonAreasService.CreateReservationAsync(data);
-        if (reservationId is null)
+        var (result, reservationId) = await _commonAreasService.CreateReservationAsync(data);
+        if (result == CreateReservationResult.CommonAreaNotFound)
         {
             return Problem(
                 title: "Common area not found",
@@ -79,7 +79,25 @@ public class CommonAreasController : ControllerBase
                 type: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404"
             );
         }
-        return Ok();
+        if (result == CreateReservationResult.InvalidTimeSlot)
+        {
+            return Problem(
+                title: "Invalid time slot",
+                detail: "Invalid date or time",
+                statusCode: StatusCodes.Status400BadRequest,
+                type: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400"
+            );
+        }
+        if (result == CreateReservationResult.UnavailableTimeSlot)
+        {
+            return Problem(
+                title: "Unavailable time slot",
+                detail: "Time slot is already reserved",
+                statusCode: StatusCodes.Status400BadRequest,
+                type: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400"
+            );
+        }
+        return Ok(new { Id = reservationId });
     }
 
     [HttpGet("{Id}")]

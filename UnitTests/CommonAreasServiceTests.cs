@@ -13,6 +13,7 @@ namespace UnitTests;
 public class CommonAreasServiceTests
 {
     private readonly CommonAreasService _commonAreasService;
+    private readonly TimeSlotService _timeSlotService;
     private readonly Mock<ICurrentUserContext> _currentUserContextMock;
     private readonly Mock<ICommonAreasRepository> _commonAreasRepositoryMock;
     private readonly Mock<ICommonAreaReservationsRepository> _commonAreaReservationsRepositoryMock;
@@ -23,11 +24,16 @@ public class CommonAreasServiceTests
         _currentUserContextMock = new Mock<ICurrentUserContext>();
         _commonAreasRepositoryMock = new Mock<ICommonAreasRepository>();
         _commonAreaReservationsRepositoryMock = new Mock<ICommonAreaReservationsRepository>();
+        _commonAreaReservationsRepositoryMock
+            .Setup(mock => mock.GetAsync(It.IsAny<int>(), It.IsAny<DateOnly>()))
+            .Returns(Task.FromResult<List<CommonAreaReservation>>([]));
         _faker = new Faker();
+        _timeSlotService = new(_commonAreaReservationsRepositoryMock.Object);
         _commonAreasService = new(
             _commonAreasRepositoryMock.Object,
             _currentUserContextMock.Object,
-            _commonAreaReservationsRepositoryMock.Object);
+            _commonAreaReservationsRepositoryMock.Object,
+            _timeSlotService);
     }
 
     [Fact]
@@ -40,8 +46,8 @@ public class CommonAreasServiceTests
             .Setup(mock => mock.GetCurrentCondominiumIdAsync())
             .Returns(Task.FromResult(condominiumId));
         _commonAreasRepositoryMock
-            .Setup(mock => mock.GetDtoAsync(commonAreaId, condominiumId))
-            .Returns(Task.FromResult<CommonAreaDTO?>(null));
+            .Setup(mock => mock.GetAsync(commonAreaId, condominiumId))
+            .Returns(Task.FromResult<CommonArea?>(null));
 
         // Act
         var result = await _commonAreasService.GetTimeSlotsAsync(commonAreaId);
@@ -55,16 +61,13 @@ public class CommonAreasServiceTests
     {
         // Arrange
         var condominiumId = _faker.Random.Guid();
-        CommonAreaDTO commonArea = FakeCommonAreasFactory.GetDto();
+        CommonArea commonArea = FakeCommonAreasFactory.Get();
         _currentUserContextMock
             .Setup(mock => mock.GetCurrentCondominiumIdAsync())
             .Returns(Task.FromResult(condominiumId));
         _commonAreasRepositoryMock
-            .Setup(mock => mock.GetDtoAsync(commonArea.Id, condominiumId))
-            .Returns(Task.FromResult<CommonAreaDTO?>(commonArea));
-        _commonAreaReservationsRepositoryMock
-            .Setup(mock => mock.GetAsync(commonArea.Id))
-            .Returns(Task.FromResult<List<CommonAreaReservation>>([]));
+            .Setup(mock => mock.GetAsync(commonArea.Id, condominiumId))
+            .Returns(Task.FromResult<CommonArea?>(commonArea));
 
         // Act
         var result = await _commonAreasService.GetTimeSlotsAsync(commonArea.Id);
@@ -88,7 +91,7 @@ public class CommonAreasServiceTests
     {
         // Arrange
         var condominiumId = _faker.Random.Guid();
-        CommonAreaDTO commonArea = FakeCommonAreasFactory.GetDto();
+        CommonArea commonArea = FakeCommonAreasFactory.Get();
         commonArea.TimeInterval = TimeOnly.Parse(interval);
         var now = DateTime.UtcNow;
         var today = new DateOnly(now.Date.Year, now.Date.Month, now.Date.Day);
@@ -105,10 +108,10 @@ public class CommonAreasServiceTests
             .Setup(mock => mock.GetCurrentCondominiumIdAsync())
             .Returns(Task.FromResult(condominiumId));
         _commonAreasRepositoryMock
-            .Setup(mock => mock.GetDtoAsync(commonArea.Id, condominiumId))
-            .Returns(Task.FromResult<CommonAreaDTO?>(commonArea));
+            .Setup(mock => mock.GetAsync(commonArea.Id, condominiumId))
+            .Returns(Task.FromResult<CommonArea?>(commonArea));
         _commonAreaReservationsRepositoryMock
-            .Setup(mock => mock.GetAsync(commonArea.Id))
+            .Setup(mock => mock.GetAsync(commonArea.Id, It.IsAny<DateOnly>()))
             .Returns(Task.FromResult(commonAreaReservationList));
 
         // Act
@@ -120,5 +123,151 @@ public class CommonAreasServiceTests
         // Assert
         Assert.NotNull(unavailableTimeSlot);
         Assert.False(unavailableTimeSlot.Available);
+    }
+
+    [Fact]
+    public async Task Create_Reservation_Returns_CommonAreaNotFound()
+    {
+        // Arrange
+        var condominiumId = _faker.Random.Guid();
+        var userId = _faker.Random.Guid();
+        var commonAreaId = _faker.Random.Int();
+        var now = DateTime.UtcNow;
+        var today = new DateOnly(now.Date.Year, now.Date.Month, now.Date.Day);
+        _currentUserContextMock
+            .Setup(mock => mock.GetIdentity())
+            .Returns(userId);
+        _currentUserContextMock
+            .Setup(mock => mock.GetCurrentCondominiumIdAsync())
+            .Returns(Task.FromResult(condominiumId));
+        _commonAreasRepositoryMock
+            .Setup(mock => mock.GetAsync(commonAreaId, condominiumId))
+            .Returns(Task.FromResult<CommonArea?>(null));
+        CreateReservationCommand data = new()
+        {
+            CommonAreaId = commonAreaId,
+            Date = today,
+            StartAt = TimeOnly.Parse("01:00")
+        };
+
+        // Act
+        var (result, reservationId) = await _commonAreasService.CreateReservationAsync(data);
+
+        // Assert
+        Assert.Equal(CreateReservationResult.CommonAreaNotFound, result);
+        Assert.Null(reservationId);
+    }
+
+    [Fact]
+    public async Task Create_Reservation_Returns_InvalidTimeSlot()
+    {
+        // Arrange
+        var condominiumId = _faker.Random.Guid();
+        var userId = _faker.Random.Guid();
+        CommonArea commonArea = FakeCommonAreasFactory.Get();
+        var now = DateTime.UtcNow;
+        var today = new DateOnly(now.Date.Year, now.Date.Month, now.Date.Day);
+        _currentUserContextMock
+            .Setup(mock => mock.GetIdentity())
+            .Returns(userId);
+        _currentUserContextMock
+            .Setup(mock => mock.GetCurrentCondominiumIdAsync())
+            .Returns(Task.FromResult(condominiumId));
+        _commonAreasRepositoryMock
+            .Setup(mock => mock.GetAsync(commonArea.Id, condominiumId))
+            .Returns(Task.FromResult<CommonArea?>(commonArea));
+        CreateReservationCommand data = new()
+        {
+            CommonAreaId = commonArea.Id,
+            Date = today,
+            StartAt = TimeOnly.Parse("01:30")
+        };
+
+        // Act
+        var (result, reservationId) = await _commonAreasService.CreateReservationAsync(data);
+
+        // Assert
+        Assert.Equal(CreateReservationResult.InvalidTimeSlot, result);
+        Assert.Null(reservationId);
+    }
+
+    [Fact]
+    public async Task Create_Reservation_Returns_UnavailableTimeSlot()
+    {
+        // Arrange
+        var condominiumId = _faker.Random.Guid();
+        var userId = _faker.Random.Guid();
+        CommonArea commonArea = FakeCommonAreasFactory.Get();
+        var now = DateTime.UtcNow;
+        var today = new DateOnly(now.Date.Year, now.Date.Month, now.Date.Day);
+        var reservationTime = TimeOnly.Parse("14:00");
+        _currentUserContextMock
+            .Setup(mock => mock.GetIdentity())
+            .Returns(userId);
+        _currentUserContextMock
+            .Setup(mock => mock.GetCurrentCondominiumIdAsync())
+            .Returns(Task.FromResult(condominiumId));
+        _commonAreasRepositoryMock
+            .Setup(mock => mock.GetAsync(commonArea.Id, condominiumId))
+            .Returns(Task.FromResult<CommonArea?>(commonArea));
+        List<CommonAreaReservation> commonAreaReservationList = [];
+        CommonAreaReservation commonAreaReservation = new()
+        {
+            Id = _faker.Random.Int(),
+            CommonAreaId = commonArea.Id,
+            Date = today,
+            StartAt = reservationTime
+        };
+        commonAreaReservationList.Add(commonAreaReservation);
+        _commonAreaReservationsRepositoryMock
+            .Setup(mock => mock.GetAsync(commonArea.Id, It.IsAny<DateOnly>()))
+            .Returns(Task.FromResult(commonAreaReservationList));
+        CreateReservationCommand data = new()
+        {
+            CommonAreaId = commonArea.Id,
+            Date = today,
+            StartAt = reservationTime
+        };
+
+        // Act
+        var (result, reservationId) = await _commonAreasService.CreateReservationAsync(data);
+
+        // Assert
+        Assert.Equal(CreateReservationResult.UnavailableTimeSlot, result);
+        Assert.Null(reservationId);
+    }
+
+    [Fact]
+    public async Task Create_Reservation_Returns_Created()
+    {
+        // Arrange
+        var condominiumId = _faker.Random.Guid();
+        var userId = _faker.Random.Guid();
+        CommonArea commonArea = FakeCommonAreasFactory.Get();
+        var now = DateTime.UtcNow;
+        var today = new DateOnly(now.Date.Year, now.Date.Month, now.Date.Day);
+        var reservationTime = TimeOnly.Parse("14:00");
+        _currentUserContextMock
+            .Setup(mock => mock.GetIdentity())
+            .Returns(userId);
+        _currentUserContextMock
+            .Setup(mock => mock.GetCurrentCondominiumIdAsync())
+            .Returns(Task.FromResult(condominiumId));
+        _commonAreasRepositoryMock
+            .Setup(mock => mock.GetAsync(commonArea.Id, condominiumId))
+            .Returns(Task.FromResult<CommonArea?>(commonArea));
+        CreateReservationCommand data = new()
+        {
+            CommonAreaId = commonArea.Id,
+            Date = today,
+            StartAt = reservationTime
+        };
+
+        // Act
+        var (result, reservationId) = await _commonAreasService.CreateReservationAsync(data);
+
+        // Assert
+        Assert.Equal(CreateReservationResult.Created, result);
+        Assert.NotNull(reservationId);
     }
 }
