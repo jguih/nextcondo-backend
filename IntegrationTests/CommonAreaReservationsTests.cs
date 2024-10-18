@@ -1,5 +1,7 @@
+using System.Net;
 using System.Net.Http.Json;
 using IntegrationTests.Utils;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using NextCondoApi;
 using NextCondoApi.Entity;
@@ -21,22 +23,27 @@ public class CommonAreaReservationsTests : IClassFixture<TestsWebApplicationFact
     {
         _factory = factory;
     }
+
     public async Task InitializeAsync()
     {
-        var userDetails = FakeUsersFactory.GetFakeUserDetails();
-        var (user, client) = await _factory.CreateAuthenticatedHttpClientAsync(userDetails);
-        Client = client;
-        TestUser = user;
         using var scope = _factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<NextCondoApiDbContext>();
-        TestCondo = await DbUtils.AddCondominiumAsync(
-            db,
-            TestUser.Id,
-            CondominiumUserRelationshipType.Tenant);
-        TestCommonArea = await DbUtils.AddCommonAreaAsync(
-            db,
-            FakeCommonAreasFactory.GetDetails(),
-            TestCondo.Id);
+        var hasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher<User>>();
+        var userDetails = FakeUsersFactory.GetFakeUserDetails();
+        // Create Test User
+        TestUser = await DbUtils.AddTestUserAsync(db, userDetails, hasher);
+        // Create Test Condominium
+        var condoDetails = FakeCondominiumsFactory.GetCondominiumDetails();
+        condoDetails.OwnerId = TestUser.Id;
+        TestCondo = await DbUtils.AddCondominiumAsync(db, condoDetails);
+        // Create Test Common Area
+        var commonAreaDetails = FakeCommonAreasFactory.GetDetails();
+        commonAreaDetails.CondominiumId = TestCondo.Id;
+        commonAreaDetails.TimeInterval = TimeOnly.Parse("01:00");
+        TestCommonArea = await DbUtils.AddCommonAreaAsync(db, commonAreaDetails);
+        // Create authenticated HttpClient
+        Client = _factory.CreateClient();
+        await Client.LoginAsync(userDetails.Email, userDetails.Password);
     }
 
     public Task DisposeAsync()
@@ -49,8 +56,6 @@ public class CommonAreaReservationsTests : IClassFixture<TestsWebApplicationFact
     public async Task Create_Reservations_Returns_200()
     {
         // Arrange
-        var utcNow = DateTime.UtcNow;
-        var now = new DateOnly(utcNow.Date.Year, utcNow.Date.Month, utcNow.Date.Day);
 
         // Act
         var timeSlotsResult = await Client.GetAsync($"/CommonAreas/{TestCommonArea.Id}/timeSlots");
@@ -69,5 +74,56 @@ public class CommonAreaReservationsTests : IClassFixture<TestsWebApplicationFact
 
         // Assert
         reservationResult.EnsureSuccessStatusCode();
+    }
+
+    [Fact]
+    public async Task Create_SameReservationTwice_Returns_400()
+    {
+        // Arrange
+
+        // Act
+        var timeSlotsResult = await Client.GetAsync($"/CommonAreas/{TestCommonArea.Id}/timeSlots");
+        var timeSlots = await timeSlotsResult.Content.ReadFromJsonAsync<List<TimeSlot>>();
+        var firstTimeSlot = timeSlots?.First();
+        Assert.NotNull(firstTimeSlot);
+        var firstTimeSlotSchedule = firstTimeSlot.Slots.First();
+        Assert.NotNull(firstTimeSlotSchedule);
+        using MultipartFormDataContent newReservationDetails = new()
+        {
+            { new StringContent(firstTimeSlot.Date.ToString()), "date" },
+            { new StringContent(firstTimeSlotSchedule.StartAt.ToString()), "startAt" },
+            { new StringContent(TestCommonArea.Id.ToString()), "commonAreaId" }
+        };
+        var firstResult = await Client.PostAsync("/CommonAreas/reservation", newReservationDetails);
+        var secondResult = await Client.PostAsync("/CommonAreas/reservation", newReservationDetails);
+
+        // Assert
+        firstResult.EnsureSuccessStatusCode();
+        Assert.Equal(HttpStatusCode.BadRequest, secondResult.StatusCode);
+    }
+
+    [Fact]
+    public async Task Create_ReservationWithInvalidSlot_Returns_400()
+    {
+        // Arrange
+
+        // Act
+        var timeSlotsResult = await Client.GetAsync($"/CommonAreas/{TestCommonArea.Id}/timeSlots");
+        var timeSlots = await timeSlotsResult.Content.ReadFromJsonAsync<List<TimeSlot>>();
+        var lastTimeSlot = timeSlots?.Last();
+        Assert.NotNull(lastTimeSlot);
+        var firstTimeSlotSchedule = lastTimeSlot.Slots.First();
+        Assert.NotNull(firstTimeSlotSchedule);
+        firstTimeSlotSchedule.StartAt = firstTimeSlotSchedule.StartAt.AddMinutes(15);
+        using MultipartFormDataContent newReservationDetails = new()
+        {
+            { new StringContent(lastTimeSlot.Date.ToString()), "date" },
+            { new StringContent(firstTimeSlotSchedule.StartAt.ToString()), "startAt" },
+            { new StringContent(TestCommonArea.Id.ToString()), "commonAreaId" }
+        };
+        var result = await Client.PostAsync("/CommonAreas/reservation", newReservationDetails);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.BadRequest, result.StatusCode);
     }
 }

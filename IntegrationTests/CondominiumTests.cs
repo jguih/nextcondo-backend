@@ -1,6 +1,9 @@
 using IntegrationTests.Utils;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using NextCondoApi;
+using NextCondoApi.Entity;
 using NextCondoApi.Features.CondominiumFeature.Models;
 using System.Net;
 using TestFakes;
@@ -8,13 +11,34 @@ using TestFakes;
 namespace IntegrationTests;
 
 [Collection(nameof(TestsWebApplicationFactory<Program>))]
-public class CondominiumTests : IClassFixture<TestsWebApplicationFactory<Program>>
+public class CondominiumTests : IClassFixture<TestsWebApplicationFactory<Program>>, IAsyncLifetime
 {
     private readonly TestsWebApplicationFactory<Program> _factory;
+    private HttpClient Client { get; set; } = null!;
+    private User TestUser { get; set; } = null!;
 
     public CondominiumTests(TestsWebApplicationFactory<Program> factory)
     {
         _factory = factory;
+    }
+
+    public async Task InitializeAsync()
+    {
+        using var scope = _factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<NextCondoApiDbContext>();
+        var hasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher<User>>();
+        var userDetails = FakeUsersFactory.GetFakeUserDetails();
+        // Create Test User
+        TestUser = await DbUtils.AddTestUserAsync(db, userDetails, hasher);
+        // Create authenticated HttpClient
+        Client = _factory.CreateClient();
+        await Client.LoginAsync(userDetails.Email, userDetails.Password);
+    }
+
+    public Task DisposeAsync()
+    {
+        Client.Dispose();
+        return Task.CompletedTask;
     }
 
     [Fact]
@@ -22,7 +46,7 @@ public class CondominiumTests : IClassFixture<TestsWebApplicationFactory<Program
     {
         // Arrange
         var client = _factory.CreateClient();
-        var details = FakeCondominiumsFactory.GetFakeNewCondominiumDetails();
+        var details = FakeCondominiumsFactory.GetCondominiumDetails();
         using MultipartFormDataContent newCondoDetails = new()
         {
             { new StringContent(details.Name), "name" },
@@ -41,11 +65,7 @@ public class CondominiumTests : IClassFixture<TestsWebApplicationFactory<Program
     public async Task Add_Condominium_ReturnsCreatedCondominium()
     {
         // Arrange
-        var userDetails = FakeUsersFactory.GetFakeUserDetails();
-        var authenticatedClient = await _factory.CreateAuthenticatedHttpClientAsync(userDetails);
-        var client = authenticatedClient.client;
-        var testUser = authenticatedClient.user;
-        var details = FakeCondominiumsFactory.GetFakeNewCondominiumDetails();
+        var details = FakeCondominiumsFactory.GetCondominiumDetails();
         using MultipartFormDataContent newCondoDetails = new()
         {
             { new StringContent(details.Name), "name" },
@@ -54,12 +74,12 @@ public class CondominiumTests : IClassFixture<TestsWebApplicationFactory<Program
         };
 
         // Act
-        var addCondoResult = await client.PostAsync("/Condominium", newCondoDetails);
-        var getMyCondoResult = await client.GetAsync("/Condominium/mine");
+        var addCondoResult = await Client.PostAsync("/Condominium", newCondoDetails);
+        var getMyCondoResult = await Client.GetAsync("/Condominium/mine");
         var getMyCondoResultBody = await getMyCondoResult.Content.ReadAsStringAsync();
         var myCondos = JsonConvert.DeserializeObject<List<CondominiumDTO>>(getMyCondoResultBody);
-        var created = myCondos?.Find(condo => condo.Owner.Id.Equals(testUser.Id));
-        var userAsMember = created?.Members.First(m => m.Id.Equals(testUser.Id));
+        var created = myCondos?.Find(condo => condo.Owner.Id.Equals(TestUser.Id));
+        var userAsMember = created?.Members.First(m => m.Id.Equals(TestUser.Id));
 
         // Assert
         addCondoResult.EnsureSuccessStatusCode();
@@ -77,12 +97,9 @@ public class CondominiumTests : IClassFixture<TestsWebApplicationFactory<Program
     public async Task Get_Current_Returns204()
     {
         // Arrange
-        var userDetails = FakeUsersFactory.GetFakeUserDetails();
-        var authenticatedClient = await _factory.CreateAuthenticatedHttpClientAsync(userDetails);
-        var client = authenticatedClient.client;
 
         // Act
-        var result = await client.GetAsync("/Condominium/mine/current");
+        var result = await Client.GetAsync("/Condominium/mine/current");
 
         // Assert
         result.EnsureSuccessStatusCode();
@@ -93,11 +110,7 @@ public class CondominiumTests : IClassFixture<TestsWebApplicationFactory<Program
     public async Task Get_Current_ReturnsCurrentCondominium()
     {
         // Arrange
-        var userDetails = FakeUsersFactory.GetFakeUserDetails();
-        var authenticatedClient = await _factory.CreateAuthenticatedHttpClientAsync(userDetails);
-        var client = authenticatedClient.client;
-        var testUser = authenticatedClient.user;
-        var details = FakeCondominiumsFactory.GetFakeNewCondominiumDetails();
+        var details = FakeCondominiumsFactory.GetCondominiumDetails();
         using MultipartFormDataContent newCondoDetails = new()
         {
             { new StringContent(details.Name), "name" },
@@ -106,8 +119,8 @@ public class CondominiumTests : IClassFixture<TestsWebApplicationFactory<Program
         };
 
         // Act
-        var addCondoResult = await client.PostAsync("/Condominium", newCondoDetails);
-        var currentResult = await client.GetAsync("/Condominium/mine/current");
+        var addCondoResult = await Client.PostAsync("/Condominium", newCondoDetails);
+        var currentResult = await Client.GetAsync("/Condominium/mine/current");
         var currentResultBody = await currentResult.Content.ReadAsStringAsync();
         var current = JsonConvert.DeserializeObject<CondominiumDTO>(currentResultBody);
 
@@ -117,6 +130,6 @@ public class CondominiumTests : IClassFixture<TestsWebApplicationFactory<Program
         Assert.NotNull(current);
         Assert.Equal(details.Name, current.Name);
         Assert.Equal(details.Description, current.Description);
-        Assert.Equal(testUser.Id, current.Owner.Id);
+        Assert.Equal(TestUser.Id, current.Owner.Id);
     }
 }

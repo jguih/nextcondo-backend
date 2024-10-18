@@ -34,14 +34,10 @@ public class AuthTests : IClassFixture<TestsWebApplicationFactory<Program>>, IDi
     {
         // Arrange
         RegisterUserDetails testUser = FakeUsersFactory.GetFakeUserDetails();
-        using (var scope = _factory.Services.CreateScope())
-        {
-            var provider = scope.ServiceProvider;
-            var users = provider.GetRequiredService<IUsersRepository>();
-            var roles = provider.GetRequiredService<IRolesRepository>();
-            var hasher = provider.GetRequiredService<IPasswordHasher<User>>();
-            await DbUtils.AddTestUserAsync(testUser, users, roles, hasher);
-        };
+        using var scope = _factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<NextCondoApiDbContext>();
+        var hasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher<User>>();
+        await DbUtils.AddTestUserAsync(db, testUser, hasher);
         using MultipartFormDataContent credentials = new()
         {
             { new StringContent(testUser.Email), "email" },

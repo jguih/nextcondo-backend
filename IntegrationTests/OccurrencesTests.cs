@@ -3,6 +3,7 @@ using System.Net;
 using System.Net.Http.Json;
 using Bogus;
 using IntegrationTests.Utils;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using NextCondoApi;
@@ -30,16 +31,19 @@ public class OccurrencesTests : IClassFixture<TestsWebApplicationFactory<Program
 
     public async Task InitializeAsync()
     {
-        var userDetails = FakeUsersFactory.GetFakeUserDetails();
-        var (user, client) = await _factory.CreateAuthenticatedHttpClientAsync(userDetails);
-        Client = client;
-        TestUser = user;
         using var scope = _factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<NextCondoApiDbContext>();
-        TestCondo = await DbUtils.AddCondominiumAsync(
-            db,
-            TestUser.Id,
-            CondominiumUserRelationshipType.Tenant);
+        var hasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher<User>>();
+        var userDetails = FakeUsersFactory.GetFakeUserDetails();
+        // Create Test User
+        TestUser = await DbUtils.AddTestUserAsync(db, userDetails, hasher);
+        // Create Test Condominium
+        var condoDetails = FakeCondominiumsFactory.GetCondominiumDetails();
+        condoDetails.OwnerId = TestUser.Id;
+        TestCondo = await DbUtils.AddCondominiumAsync(db, condoDetails);
+        // Create authenticated HttpClient
+        Client = _factory.CreateClient();
+        await Client.LoginAsync(userDetails.Email, userDetails.Password);
     }
 
     public Task DisposeAsync()

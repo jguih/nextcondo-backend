@@ -6,7 +6,10 @@ using NextCondoApi.Features.CondominiumFeature.Models;
 
 namespace TestFakes;
 
-public class NewCondominiumDetails : CreateCondominiumCommand { }
+public class CondominiumDetails : CreateCondominiumCommand
+{
+    public Guid OwnerId { get; set; }
+}
 
 public class FakeCondominiumsFactory
 {
@@ -18,17 +21,17 @@ public class FakeCondominiumsFactory
         .RuleFor(o => o.CreatedAt, DateTimeOffset.UtcNow)
         .RuleFor(o => o.UpdatedAt, DateTimeOffset.UtcNow);
 
-    private static Faker<NewCondominiumDetails> NewCondominiumDetailsFaker { get; } = new Faker<NewCondominiumDetails>()
+    private static Faker<CondominiumDetails> NewCondominiumDetailsFaker { get; } = new Faker<CondominiumDetails>()
         .RuleFor(o => o.Name, f => f.Lorem.Sentence(10).ClampLength(1, 100))
         .RuleFor(o => o.Description, f => f.Lorem.Paragraph(3).ClampLength(1, 2000))
-        .RuleFor(o => o.RelationshipType, CondominiumUserRelationshipType.Tenant);
+        .RuleFor(o => o.RelationshipType, CondominiumUserRelationshipType.Manager);
 
-    public static Condominium GetFakeCondominium()
+    public static Condominium GetCondominium()
     {
         return CondominiumFaker.Generate();
     }
 
-    public static NewCondominiumDetails GetFakeNewCondominiumDetails()
+    public static CondominiumDetails GetCondominiumDetails()
     {
         return NewCondominiumDetailsFaker.Generate();
     }

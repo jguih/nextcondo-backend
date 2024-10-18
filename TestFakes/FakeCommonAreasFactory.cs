@@ -5,7 +5,10 @@ using NextCondoApi.Features.CommonAreasFeature.Models;
 
 namespace TestFakes;
 
-public class CommonAreaDetails : CreateCommonAreaCommand { }
+public class CommonAreaDetails : CreateCommonAreaCommand
+{
+    public Guid CondominiumId { get; set; }
+}
 
 public class FakeCommonAreasFactory
 {

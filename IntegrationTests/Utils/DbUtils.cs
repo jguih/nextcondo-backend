@@ -1,9 +1,8 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Bogus;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using NextCondoApi.Entity;
 using NextCondoApi.Features.Configuration;
-using NextCondoApi.Features.UsersFeature.Services;
-using NextCondoApi.Services;
 using Npgsql;
 using Respawn;
 using TestFakes;
@@ -12,67 +11,70 @@ namespace IntegrationTests.Utils;
 
 public static class DbUtils
 {
+    private static Faker Faker { get; } = new();
+
     public static async Task<User> AddTestUserAsync(
+        NextCondoApiDbContext db,
         RegisterUserDetails userDetails,
-        IUsersRepository users,
-        IRolesRepository roles,
         IPasswordHasher<User> hasher)
     {
-        Role defaultRole = await roles.GetDefaultAsync();
         var user = new User()
         {
             Email = userDetails.Email,
             FullName = userDetails.FullName,
             Phone = userDetails.Phone,
-            RoleId = defaultRole.Name,
-            Role = defaultRole,
+            RoleId = "User",
         };
         var passwordHash = hasher.HashPassword(user, userDetails.Password);
         user.PasswordHash = passwordHash;
 
-        await users.AddAsync(user);
+        await db.Users.AddAsync(user);
+        await db.SaveChangesAsync();
 
         return user;
     }
 
     public static async Task<Condominium> AddCondominiumAsync(
         NextCondoApiDbContext db,
-        Guid ownerId,
-        CondominiumUserRelationshipType relationshipType)
+        CondominiumDetails details)
     {
         // Create condominium and add user as owner
-        var condominium = FakeCondominiumsFactory.GetFakeCondominium();
-        condominium.OwnerId = ownerId;
+        Condominium newCondominium = new()
+        {
+            Id = Faker.Random.Guid(),
+            Name = details.Name,
+            Description = details.Description,
+            OwnerId = details.OwnerId,
+        };
         // Add user as a member
         CondominiumUser newMember = new()
         {
-            UserId = ownerId,
-            RelationshipType = relationshipType,
-            CondominiumId = condominium.Id,
+            UserId = details.OwnerId,
+            RelationshipType = details.RelationshipType,
+            CondominiumId = newCondominium.Id,
         };
-        condominium.Members.Add(newMember);
-        await db.Condominiums.AddAsync(condominium);
+        newCondominium.Members.Add(newMember);
+        await db.Condominiums.AddAsync(newCondominium);
         // Add current condominium for user
         CurrentCondominium current = new()
         {
-            CondominiumId = condominium.Id,
-            UserId = ownerId,
+            CondominiumId = newCondominium.Id,
+            UserId = details.OwnerId,
         };
         await db.CurrentCondominium.AddAsync(current);
         await db.SaveChangesAsync();
-        return condominium;
+        return newCondominium;
     }
 
     public static async Task<CommonArea> AddCommonAreaAsync(
         NextCondoApiDbContext db,
-        CommonAreaDetails data,
-        Guid condoId)
+        CommonAreaDetails data)
     {
         CommonArea newCommonArea = new()
         {
             Name = data.Name,
             Description = data.Description,
-            CondominiumId = condoId,
+            CondominiumId = data.CondominiumId,
             StartTime = data.StartTime,
             EndTime = data.EndTime,
             TimeInterval = data.TimeInterval
