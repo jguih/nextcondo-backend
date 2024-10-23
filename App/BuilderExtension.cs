@@ -102,6 +102,7 @@ public static class BuilderExtension
         builder.Services.AddScoped<ICondominiumUserRepository, CondominiumUserRepository>();
         builder.Services.AddScoped<ICommonAreasRepository, CommonAreasRepository>();
         builder.Services.AddScoped<ICommonAreaReservationsRepository, CommonAreaReservationsRepository>();
+        builder.Services.AddScoped<ICommonAreaTypesRepository, CommonAreaTypesRepository>();
     }
 
     public static void AddServices(this WebApplicationBuilder builder)

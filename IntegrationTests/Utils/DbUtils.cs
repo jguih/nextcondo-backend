@@ -72,8 +72,7 @@ public static class DbUtils
     {
         CommonArea newCommonArea = new()
         {
-            Name = data.Name,
-            Description = data.Description,
+            TypeId = data.TypeId,
             CondominiumId = data.CondominiumId,
             StartTime = data.StartTime,
             EndTime = data.EndTime,
@@ -97,7 +96,7 @@ public static class DbUtils
                     new RespawnerOptions
                     {
                         SchemasToInclude = ["public"],
-                        TablesToIgnore = ["Roles", "__EFMigrationsHistory", "OccurrenceTypes"],
+                        TablesToIgnore = ["Roles", "__EFMigrationsHistory", "OccurrenceTypes", "CommonAreaTypes"],
                         DbAdapter = DbAdapter.Postgres
                     }
                 );

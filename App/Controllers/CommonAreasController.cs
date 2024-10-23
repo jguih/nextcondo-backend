@@ -31,12 +31,25 @@ public class CommonAreasController : ControllerBase
         typeof(object),
         StatusCodes.Status201Created,
         MediaTypeNames.Application.Json)]
+    [ProducesResponseType(
+        typeof(ProblemDetails),
+        StatusCodes.Status404NotFound,
+        MediaTypeNames.Application.ProblemJson)]
     [SwaggerOperation(
         summary: "Creates a new common area",
         description: "Creates a new common area for user's current condominium")]
     public async Task<IActionResult> AddAsync([FromForm] CreateCommonAreaCommand data)
     {
-        var commonAreaId = await _commonAreasService.AddAsync(data);
+        var (result, commonAreaId) = await _commonAreasService.AddAsync(data);
+        if (result == CreateCommonAreaResult.CommonAreaTypeNotFound)
+        {
+            return Problem(
+                title: "Common area type not found",
+                detail: "Common area type not found",
+                statusCode: StatusCodes.Status404NotFound,
+                type: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404"
+            );
+        }
         return CreatedAtAction(nameof(GetById), new { Id = commonAreaId }, new { Id = commonAreaId });
     }
 

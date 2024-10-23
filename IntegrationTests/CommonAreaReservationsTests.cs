@@ -70,7 +70,7 @@ public class CommonAreaReservationsTests : IClassFixture<TestsWebApplicationFact
             { new StringContent(firstTimeSlotSchedule.StartAt.ToString()), "startAt" },
             { new StringContent(TestCommonArea.Id.ToString()), "commonAreaId" }
         };
-        var reservationResult = await Client.PostAsync("/CommonAreas/reservation", newReservationDetails);
+        var reservationResult = await Client.PostAsync($"/CommonAreas/{TestCommonArea.Id}/reservation", newReservationDetails);
 
         // Assert
         reservationResult.EnsureSuccessStatusCode();
@@ -94,8 +94,8 @@ public class CommonAreaReservationsTests : IClassFixture<TestsWebApplicationFact
             { new StringContent(firstTimeSlotSchedule.StartAt.ToString()), "startAt" },
             { new StringContent(TestCommonArea.Id.ToString()), "commonAreaId" }
         };
-        var firstResult = await Client.PostAsync("/CommonAreas/reservation", newReservationDetails);
-        var secondResult = await Client.PostAsync("/CommonAreas/reservation", newReservationDetails);
+        var firstResult = await Client.PostAsync($"/CommonAreas/{TestCommonArea.Id}/reservation", newReservationDetails);
+        var secondResult = await Client.PostAsync($"/CommonAreas/{TestCommonArea.Id}/reservation", newReservationDetails);
 
         // Assert
         firstResult.EnsureSuccessStatusCode();
@@ -121,7 +121,7 @@ public class CommonAreaReservationsTests : IClassFixture<TestsWebApplicationFact
             { new StringContent(firstTimeSlotSchedule.StartAt.ToString()), "startAt" },
             { new StringContent(TestCommonArea.Id.ToString()), "commonAreaId" }
         };
-        var result = await Client.PostAsync("/CommonAreas/reservation", newReservationDetails);
+        var result = await Client.PostAsync($"/CommonAreas/{TestCommonArea.Id}/reservation", newReservationDetails);
 
         // Assert
         Assert.Equal(HttpStatusCode.BadRequest, result.StatusCode);

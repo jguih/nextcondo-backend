@@ -7,7 +7,7 @@ namespace NextCondoApi.Features.CommonAreasFeature.Services;
 
 public interface ICommonAreasService
 {
-    public Task<int> AddAsync(CreateCommonAreaCommand data);
+    public Task<(CreateCommonAreaResult result, int? commonAreaId)> AddAsync(CreateCommonAreaCommand data);
     public Task<List<TimeSlot>?> GetTimeSlotsAsync(int Id);
     public Task<CommonAreaDTO?> GetDtoAsync(int? Id);
     public Task<List<CommonAreaDTO>> GetDtoListAsync();
@@ -19,34 +19,41 @@ public class CommonAreasService : ICommonAreasService
     private readonly ICommonAreasRepository _commonAreasRepository;
     private readonly ICurrentUserContext _currentUserContext;
     private readonly ICommonAreaReservationsRepository _commonAreaReservationsRepository;
+    private readonly ICommonAreaTypesRepository _commonAreaTypesRepository;
     private readonly ITimeSlotService _timeSlotService;
 
     public CommonAreasService(
         ICommonAreasRepository commonAreasRepository,
         ICurrentUserContext currentUserContext,
         ICommonAreaReservationsRepository commonAreaReservationsRepository,
+        ICommonAreaTypesRepository commonAreaTypesRepository,
         ITimeSlotService timeSlotService)
     {
         _commonAreasRepository = commonAreasRepository;
         _currentUserContext = currentUserContext;
         _commonAreaReservationsRepository = commonAreaReservationsRepository;
+        _commonAreaTypesRepository = commonAreaTypesRepository;
         _timeSlotService = timeSlotService;
     }
 
-    public async Task<int> AddAsync(CreateCommonAreaCommand data)
+    public async Task<(CreateCommonAreaResult result, int? commonAreaId)> AddAsync(CreateCommonAreaCommand data)
     {
         var currentCondoId = await _currentUserContext.GetCurrentCondominiumIdAsync();
+        var typeExists = await _commonAreaTypesRepository.Exists(data.TypeId);
+        if (!typeExists)
+        {
+            return (CreateCommonAreaResult.CommonAreaTypeNotFound, null);
+        }
         CommonArea newCommonArea = new()
         {
-            Name = data.Name,
-            Description = data.Description,
+            TypeId = data.TypeId,
             CondominiumId = currentCondoId,
             StartTime = data.StartTime,
             EndTime = data.EndTime,
             TimeInterval = data.TimeInterval
         };
         await _commonAreasRepository.AddAsync(newCommonArea);
-        return newCommonArea.Id;
+        return (CreateCommonAreaResult.Created, newCommonArea.Id);
     }
 
     public async Task<(CreateReservationResult result, int? reservationId)> CreateReservationAsync(int commonAreaId, CreateReservationCommand data)
@@ -137,5 +144,11 @@ public enum CreateReservationResult
     CommonAreaNotFound,
     InvalidTimeSlot,
     UnavailableTimeSlot,
+    Created,
+}
+
+public enum CreateCommonAreaResult
+{
+    CommonAreaTypeNotFound,
     Created,
 }

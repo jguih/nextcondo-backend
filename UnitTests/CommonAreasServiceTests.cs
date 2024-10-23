@@ -16,6 +16,7 @@ public class CommonAreasServiceTests
     private readonly Mock<ICurrentUserContext> _currentUserContextMock;
     private readonly Mock<ICommonAreasRepository> _commonAreasRepositoryMock;
     private readonly Mock<ICommonAreaReservationsRepository> _commonAreaReservationsRepositoryMock;
+    private readonly Mock<ICommonAreaTypesRepository> _commonAreaTypesRepositoryMock;
     private readonly Faker _faker;
 
     public CommonAreasServiceTests()
@@ -26,12 +27,14 @@ public class CommonAreasServiceTests
         _commonAreaReservationsRepositoryMock
             .Setup(mock => mock.GetAsync(It.IsAny<int>(), It.IsAny<DateOnly>()))
             .Returns(Task.FromResult<List<CommonAreaReservation>>([]));
+        _commonAreaTypesRepositoryMock = new Mock<ICommonAreaTypesRepository>();
         _faker = new Faker();
         _timeSlotService = new(_commonAreaReservationsRepositoryMock.Object);
         _commonAreasService = new(
             _commonAreasRepositoryMock.Object,
             _currentUserContextMock.Object,
             _commonAreaReservationsRepositoryMock.Object,
+            _commonAreaTypesRepositoryMock.Object,
             _timeSlotService);
     }
 
@@ -263,6 +266,7 @@ public class CommonAreasServiceTests
 
         // Assert
         Assert.Equal(CreateReservationResult.Created, result);
+        _commonAreaReservationsRepositoryMock.Verify(mock => mock.AddAsync(It.IsAny<CommonAreaReservation>()), Times.Once);
         Assert.NotNull(reservationId);
     }
 }

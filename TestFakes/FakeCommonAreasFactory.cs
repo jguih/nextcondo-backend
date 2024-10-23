@@ -15,16 +15,20 @@ public class FakeCommonAreasFactory
 {
     private static readonly Faker<CommonAreaDTO> CommonAreaDTOFaker = new Faker<CommonAreaDTO>()
         .RuleFor(o => o.Id, f => f.Random.Int())
-        .RuleFor(o => o.Name, f => f.Lorem.Sentence(3).ClampLength(0, 255))
-        .RuleFor(o => o.Description, f => f.Lorem.Paragraph(10).ClampLength(0, 2000))
+        .RuleFor(o => o.Type,
+            new CommonAreaDTO.CommonAreaTypeDTO()
+            {
+                Id = 1,
+                Name_EN = "Gym",
+                Name_PTBR = "Academia"
+            })
         .RuleFor(o => o.StartTime, TimeOnly.Parse("00:00"))
         .RuleFor(o => o.EndTime, TimeOnly.Parse("22:00"))
         .RuleFor(o => o.TimeInterval, TimeOnly.Parse("01:00"));
 
     private static readonly Faker<CommonArea> CommonAreaFaker = new Faker<CommonArea>()
         .RuleFor(o => o.Id, f => f.Random.Int())
-        .RuleFor(o => o.Name, f => f.Lorem.Sentence(3).ClampLength(0, 255))
-        .RuleFor(o => o.Description, f => f.Lorem.Paragraph(10).ClampLength(0, 2000))
+        .RuleFor(o => o.TypeId, f => f.Random.Int(1, 6))
         .RuleFor(o => o.StartTime, TimeOnly.Parse("00:00"))
         .RuleFor(o => o.EndTime, TimeOnly.Parse("22:00"))
         .RuleFor(o => o.TimeInterval, TimeOnly.Parse("01:00"))
@@ -33,8 +37,7 @@ public class FakeCommonAreasFactory
         .RuleFor(o => o.UpdatedAt, DateTimeOffset.UtcNow);
 
     private static readonly Faker<CommonAreaDetails> CommonAreaDetailsFaker = new Faker<CommonAreaDetails>()
-        .RuleFor(o => o.Name, f => f.Lorem.Sentence(3).ClampLength(0, 255))
-        .RuleFor(o => o.Description, f => f.Lorem.Paragraph(10).ClampLength(0, 2000))
+        .RuleFor(o => o.TypeId, f => f.Random.Int(1, 6))
         .RuleFor(o => o.StartTime, TimeOnly.Parse("00:00"))
         .RuleFor(o => o.EndTime, TimeOnly.Parse("22:00"))
         .RuleFor(o => o.TimeInterval, TimeOnly.Parse("01:00"));

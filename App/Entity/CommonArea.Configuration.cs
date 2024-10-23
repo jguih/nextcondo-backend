@@ -11,14 +11,6 @@ public class CommonAreaEntityTypeConfiguration : IEntityTypeConfiguration<Common
             .HasKey(area => area.Id);
 
         builder
-            .Property(area => area.Name)
-            .IsRequired();
-
-        builder
-            .Property(area => area.Description)
-            .IsRequired();
-
-        builder
             .Property(area => area.StartTime)
             .IsRequired();
 
@@ -29,6 +21,11 @@ public class CommonAreaEntityTypeConfiguration : IEntityTypeConfiguration<Common
         builder
             .Property(area => area.TimeInterval)
             .IsRequired();
+
+        builder
+            .HasOne(area => area.Type)
+            .WithMany()
+            .HasForeignKey(area => area.TypeId);
 
         builder
             .HasOne(area => area.Condominium)

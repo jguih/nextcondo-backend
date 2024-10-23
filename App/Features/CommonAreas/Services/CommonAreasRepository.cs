@@ -40,13 +40,18 @@ public class CommonAreasRepository : GenericRepository<CommonArea>, ICommonAreas
         var hasCondominiumId = condominiumId.HasValue && !condominiumId.Value.Equals(Guid.Empty);
         var hasId = id != null;
         var query = from commonArea in entities
+                    let type = commonArea.Type
                     where (!hasId || commonArea.Id == id)
                         && (!hasCondominiumId || commonArea.CondominiumId == condominiumId)
                     select new CommonAreaDTO()
                     {
                         Id = commonArea.Id,
-                        Name = commonArea.Name,
-                        Description = commonArea.Description,
+                        Type = new()
+                        {
+                            Id = type.Id,
+                            Name_EN = type.Name_EN,
+                            Name_PTBR = type.Name_PTBR
+                        },
                         StartTime = commonArea.StartTime,
                         EndTime = commonArea.EndTime,
                         TimeInterval = commonArea.TimeInterval
@@ -61,13 +66,18 @@ public class CommonAreasRepository : GenericRepository<CommonArea>, ICommonAreas
         var hasCondominiumId = condominiumId.HasValue && !condominiumId.Value.Equals(Guid.Empty);
         var hasId = id != null;
         var query = from commonArea in entities
+                    let type = commonArea.Type
                     where (!hasId || commonArea.Id == id)
                         && (!hasCondominiumId || commonArea.CondominiumId == condominiumId)
                     select new CommonAreaDTO()
                     {
                         Id = commonArea.Id,
-                        Name = commonArea.Name,
-                        Description = commonArea.Description,
+                        Type = new()
+                        {
+                            Id = type.Id,
+                            Name_EN = type.Name_EN,
+                            Name_PTBR = type.Name_PTBR
+                        },
                         StartTime = commonArea.StartTime,
                         EndTime = commonArea.EndTime,
                         TimeInterval = commonArea.TimeInterval
