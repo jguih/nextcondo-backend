@@ -8,7 +8,7 @@ namespace NextCondoApi.Features.CommonAreasFeature.Services;
 public interface ICommonAreasService
 {
     public Task<(CreateCommonAreaResult result, int? commonAreaId)> AddAsync(CreateCommonAreaCommand data);
-    public Task<List<TimeSlot>?> GetTimeSlotsAsync(int Id);
+    public Task<List<BookingSlot>?> GetBookingSlotsAsync(int Id);
     public Task<CommonAreaDTO?> GetDtoAsync(int? Id);
     public Task<List<CommonAreaDTO>> GetDtoListAsync();
     public Task<(CreateReservationResult result, int? reservationId)> CreateReservationAsync(int commonAreaId, CreateReservationCommand data);
@@ -20,14 +20,14 @@ public class CommonAreasService : ICommonAreasService
     private readonly ICurrentUserContext _currentUserContext;
     private readonly ICommonAreaReservationsRepository _commonAreaReservationsRepository;
     private readonly ICommonAreaTypesRepository _commonAreaTypesRepository;
-    private readonly ITimeSlotService _timeSlotService;
+    private readonly IBookingSlotService _timeSlotService;
 
     public CommonAreasService(
         ICommonAreasRepository commonAreasRepository,
         ICurrentUserContext currentUserContext,
         ICommonAreaReservationsRepository commonAreaReservationsRepository,
         ICommonAreaTypesRepository commonAreaTypesRepository,
-        ITimeSlotService timeSlotService)
+        IBookingSlotService timeSlotService)
     {
         _commonAreasRepository = commonAreasRepository;
         _currentUserContext = currentUserContext;
@@ -70,7 +70,7 @@ public class CommonAreasService : ICommonAreasService
             return (CreateReservationResult.CommonAreaNotFound, null);
         }
 
-        var timeSlot = await _timeSlotService.GetTimeSlotAsync(commonArea, data.Date);
+        var timeSlot = await _timeSlotService.GetBookingSlotAsync(commonArea, data.Date);
         var existingSlot = timeSlot.Slots.Find(slot => slot.StartAt.CompareTo(data.StartAt) == 0);
 
         if (existingSlot is null)
@@ -110,7 +110,7 @@ public class CommonAreasService : ICommonAreasService
         return dtoList;
     }
 
-    public async Task<List<TimeSlot>?> GetTimeSlotsAsync(int Id)
+    public async Task<List<BookingSlot>?> GetBookingSlotsAsync(int Id)
     {
         var currentCondoId = await _currentUserContext.GetCurrentCondominiumIdAsync();
         var commonArea = await _commonAreasRepository
@@ -124,18 +124,18 @@ public class CommonAreasService : ICommonAreasService
         }
 
         int duration = 7;
-        List<TimeSlot> timeSlotList = [];
+        List<BookingSlot> bookingSlotList = [];
         DateTime utcNow = DateTime.UtcNow;
 
         for (int i = 0; i < duration; i++)
         {
             var now = utcNow.AddDays(i);
             var date = new DateOnly(now.Date.Year, now.Date.Month, now.Date.Day);
-            var timeSlot = await _timeSlotService.GetTimeSlotAsync(commonArea, date);
-            timeSlotList.Add(timeSlot);
+            var timeSlot = await _timeSlotService.GetBookingSlotAsync(commonArea, date);
+            bookingSlotList.Add(timeSlot);
         }
 
-        return timeSlotList;
+        return bookingSlotList;
     }
 }
 

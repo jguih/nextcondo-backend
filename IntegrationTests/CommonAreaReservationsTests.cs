@@ -59,7 +59,7 @@ public class CommonAreaReservationsTests : IClassFixture<TestsWebApplicationFact
 
         // Act
         var timeSlotsResult = await Client.GetAsync($"/CommonAreas/{TestCommonArea.Id}/timeSlots");
-        var timeSlots = await timeSlotsResult.Content.ReadFromJsonAsync<List<TimeSlot>>();
+        var timeSlots = await timeSlotsResult.Content.ReadFromJsonAsync<List<BookingSlot>>();
         var firstTimeSlot = timeSlots?.First();
         Assert.NotNull(firstTimeSlot);
         var firstTimeSlotSchedule = firstTimeSlot.Slots.First();
@@ -83,7 +83,7 @@ public class CommonAreaReservationsTests : IClassFixture<TestsWebApplicationFact
 
         // Act
         var timeSlotsResult = await Client.GetAsync($"/CommonAreas/{TestCommonArea.Id}/timeSlots");
-        var timeSlots = await timeSlotsResult.Content.ReadFromJsonAsync<List<TimeSlot>>();
+        var timeSlots = await timeSlotsResult.Content.ReadFromJsonAsync<List<BookingSlot>>();
         var firstTimeSlot = timeSlots?.First();
         Assert.NotNull(firstTimeSlot);
         var firstTimeSlotSchedule = firstTimeSlot.Slots.First();
@@ -109,7 +109,7 @@ public class CommonAreaReservationsTests : IClassFixture<TestsWebApplicationFact
 
         // Act
         var timeSlotsResult = await Client.GetAsync($"/CommonAreas/{TestCommonArea.Id}/timeSlots");
-        var timeSlots = await timeSlotsResult.Content.ReadFromJsonAsync<List<TimeSlot>>();
+        var timeSlots = await timeSlotsResult.Content.ReadFromJsonAsync<List<BookingSlot>>();
         var lastTimeSlot = timeSlots?.Last();
         Assert.NotNull(lastTimeSlot);
         var firstTimeSlotSchedule = lastTimeSlot.Slots.First();

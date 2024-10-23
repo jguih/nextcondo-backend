@@ -4,17 +4,17 @@ using NextCondoApi.Features.CommonAreasFeature.Models;
 
 namespace NextCondoApi.Features.CommonAreasFeature.Services;
 
-public interface ITimeSlotService
+public interface IBookingSlotService
 {
-    public Task<TimeSlot> GetTimeSlotAsync(CommonArea commonArea, DateOnly date);
+    public Task<BookingSlot> GetBookingSlotAsync(CommonArea commonArea, DateOnly date);
 }
 
-public class TimeSlotService : ITimeSlotService
+public class BookingSlotService : IBookingSlotService
 {
     private readonly ICommonAreaReservationsRepository _commonAreaReservationsRepository;
     private static readonly int MAX_TIME_SLOTS = 50;
 
-    public TimeSlotService(ICommonAreaReservationsRepository commonAreaReservationsRepository)
+    public BookingSlotService(ICommonAreaReservationsRepository commonAreaReservationsRepository)
     {
         _commonAreaReservationsRepository = commonAreaReservationsRepository;
     }
@@ -24,11 +24,11 @@ public class TimeSlotService : ITimeSlotService
         return startAt.CompareTo(commonAreaEndTime) < 0 && index != MAX_TIME_SLOTS;
     }
 
-    public async Task<TimeSlot> GetTimeSlotAsync(CommonArea commonArea, DateOnly date)
+    public async Task<BookingSlot> GetBookingSlotAsync(CommonArea commonArea, DateOnly date)
     {
         var reservations = await _commonAreaReservationsRepository.GetAsync(commonArea.Id, date);
 
-        TimeSlot timeSlot = new()
+        BookingSlot bookingSlot = new()
         {
             Date = date
         };
@@ -40,16 +40,16 @@ public class TimeSlotService : ITimeSlotService
             var existingReservation = reservations
                 .Find(reservation => reservation.StartAt.CompareTo(startAt) == 0);
             bool isAvailable = existingReservation is null;
-            Slot slot = new()
+            TimeSlot slot = new()
             {
                 StartAt = startAt,
                 Available = isAvailable,
             };
-            timeSlot.Slots.Add(slot);
+            bookingSlot.Slots.Add(slot);
             startAt = startAt.Add(commonArea.TimeInterval.ToTimeSpan());
             timeSlotsIndex++;
         }
 
-        return timeSlot;
+        return bookingSlot;
     }
 }

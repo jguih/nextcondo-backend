@@ -142,7 +142,7 @@ public class CommonAreasController : ControllerBase
 
     [HttpGet("{Id}/timeSlots")]
     [ProducesResponseType(
-        typeof(List<TimeSlot>),
+        typeof(List<BookingSlot>),
         StatusCodes.Status200OK,
         MediaTypeNames.Application.Json)]
     [ProducesResponseType(
@@ -154,7 +154,7 @@ public class CommonAreasController : ControllerBase
         description: "Returns time slots for the next 7 days for a current condominium's common area with specified Id")]
     public async Task<IActionResult> GetTimeSlotsAsync(int Id)
     {
-        var timeSlots = await _commonAreasService.GetTimeSlotsAsync(Id);
+        var timeSlots = await _commonAreasService.GetBookingSlotsAsync(Id);
         if (timeSlots is null)
         {
             return Problem(

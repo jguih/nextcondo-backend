@@ -12,7 +12,7 @@ namespace UnitTests;
 public class CommonAreasServiceTests
 {
     private readonly CommonAreasService _commonAreasService;
-    private readonly TimeSlotService _timeSlotService;
+    private readonly BookingSlotService _timeSlotService;
     private readonly Mock<ICurrentUserContext> _currentUserContextMock;
     private readonly Mock<ICommonAreasRepository> _commonAreasRepositoryMock;
     private readonly Mock<ICommonAreaReservationsRepository> _commonAreaReservationsRepositoryMock;
@@ -52,7 +52,7 @@ public class CommonAreasServiceTests
             .Returns(Task.FromResult<CommonArea?>(null));
 
         // Act
-        var result = await _commonAreasService.GetTimeSlotsAsync(commonAreaId);
+        var result = await _commonAreasService.GetBookingSlotsAsync(commonAreaId);
 
         // Assert
         Assert.Null(result);
@@ -72,7 +72,7 @@ public class CommonAreasServiceTests
             .Returns(Task.FromResult<CommonArea?>(commonArea));
 
         // Act
-        var result = await _commonAreasService.GetTimeSlotsAsync(commonArea.Id);
+        var result = await _commonAreasService.GetBookingSlotsAsync(commonArea.Id);
         var first = result?.First();
 
         // Assert
@@ -117,7 +117,7 @@ public class CommonAreasServiceTests
             .Returns(Task.FromResult(commonAreaReservationList));
 
         // Act
-        var result = await _commonAreasService.GetTimeSlotsAsync(commonArea.Id);
+        var result = await _commonAreasService.GetBookingSlotsAsync(commonArea.Id);
         var timeSlotsForToday = result?.Find(timeSlot => timeSlot.Date.CompareTo(today) == 0);
         var unavailableTimeSlot = timeSlotsForToday?.Slots
             .Find(slot => slot.StartAt.CompareTo(commonAreaReservation.StartAt) == 0);
