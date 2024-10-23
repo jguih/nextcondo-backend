@@ -10,6 +10,7 @@ public class CommonArea : BaseEntity
     public TimeOnly TimeInterval { get; set; }
     public Guid CondominiumId { get; set; }
     public Condominium? Condominium { get; set; }
+    public ICollection<CommonAreaSlot> Slots { get; set; } = [];
 
     public override object GetId()
     {
