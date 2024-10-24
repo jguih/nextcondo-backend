@@ -56,20 +56,22 @@ public class CommonAreaReservationsTests : IClassFixture<TestsWebApplicationFact
     public async Task Create_Reservations_Returns_200()
     {
         // Arrange
-
-        // Act
-        var timeSlotsResult = await Client.GetAsync($"/CommonAreas/{TestCommonArea.Id}/timeSlots");
-        var timeSlots = await timeSlotsResult.Content.ReadFromJsonAsync<List<BookingSlot>>();
-        var firstTimeSlot = timeSlots?.First();
+        var slotId = TestCommonArea.Slots.First().Id;
+        var bookingSlotSlotsResult = await Client.GetAsync($"/CommonAreas/{TestCommonArea.Id}/slot/{slotId}/bookingSlots");
+        var bookingSlots = await bookingSlotSlotsResult.Content.ReadFromJsonAsync<List<BookingSlot>>();
+        var firstBookingSlot = bookingSlots?.First();
+        Assert.NotNull(firstBookingSlot);
+        var firstTimeSlot = firstBookingSlot.Slots.First();
         Assert.NotNull(firstTimeSlot);
-        var firstTimeSlotSchedule = firstTimeSlot.Slots.First();
-        Assert.NotNull(firstTimeSlotSchedule);
         using MultipartFormDataContent newReservationDetails = new()
         {
-            { new StringContent(firstTimeSlot.Date.ToString()), "date" },
-            { new StringContent(firstTimeSlotSchedule.StartAt.ToString()), "startAt" },
-            { new StringContent(TestCommonArea.Id.ToString()), "commonAreaId" }
+            { new StringContent(firstBookingSlot.Date.ToString()), "date" },
+            { new StringContent(firstTimeSlot.StartAt.ToString()), "startAt" },
+            { new StringContent(TestCommonArea.Id.ToString()), "commonAreaId" },
+            { new StringContent(slotId.ToString()), "slotId" }
         };
+
+        // Act
         var reservationResult = await Client.PostAsync($"/CommonAreas/{TestCommonArea.Id}/reservation", newReservationDetails);
 
         // Assert
@@ -80,20 +82,22 @@ public class CommonAreaReservationsTests : IClassFixture<TestsWebApplicationFact
     public async Task Create_SameReservationTwice_Returns_400()
     {
         // Arrange
-
-        // Act
-        var timeSlotsResult = await Client.GetAsync($"/CommonAreas/{TestCommonArea.Id}/timeSlots");
-        var timeSlots = await timeSlotsResult.Content.ReadFromJsonAsync<List<BookingSlot>>();
-        var firstTimeSlot = timeSlots?.First();
+        var slotId = TestCommonArea.Slots.First().Id;
+        var bookingSlotSlotsResult = await Client.GetAsync($"/CommonAreas/{TestCommonArea.Id}/slot/{slotId}/bookingSlots");
+        var bookingSlots = await bookingSlotSlotsResult.Content.ReadFromJsonAsync<List<BookingSlot>>();
+        var firstBookingSlot = bookingSlots?.First();
+        Assert.NotNull(firstBookingSlot);
+        var firstTimeSlot = firstBookingSlot.Slots.First();
         Assert.NotNull(firstTimeSlot);
-        var firstTimeSlotSchedule = firstTimeSlot.Slots.First();
-        Assert.NotNull(firstTimeSlotSchedule);
         using MultipartFormDataContent newReservationDetails = new()
         {
-            { new StringContent(firstTimeSlot.Date.ToString()), "date" },
-            { new StringContent(firstTimeSlotSchedule.StartAt.ToString()), "startAt" },
-            { new StringContent(TestCommonArea.Id.ToString()), "commonAreaId" }
+            { new StringContent(firstBookingSlot.Date.ToString()), "date" },
+            { new StringContent(firstTimeSlot.StartAt.ToString()), "startAt" },
+            { new StringContent(TestCommonArea.Id.ToString()), "commonAreaId" },
+            { new StringContent(slotId.ToString()), "slotId" }
         };
+
+        // Act
         var firstResult = await Client.PostAsync($"/CommonAreas/{TestCommonArea.Id}/reservation", newReservationDetails);
         var secondResult = await Client.PostAsync($"/CommonAreas/{TestCommonArea.Id}/reservation", newReservationDetails);
 
@@ -106,21 +110,23 @@ public class CommonAreaReservationsTests : IClassFixture<TestsWebApplicationFact
     public async Task Create_ReservationWithInvalidSlot_Returns_400()
     {
         // Arrange
-
-        // Act
-        var timeSlotsResult = await Client.GetAsync($"/CommonAreas/{TestCommonArea.Id}/timeSlots");
-        var timeSlots = await timeSlotsResult.Content.ReadFromJsonAsync<List<BookingSlot>>();
-        var lastTimeSlot = timeSlots?.Last();
-        Assert.NotNull(lastTimeSlot);
-        var firstTimeSlotSchedule = lastTimeSlot.Slots.First();
-        Assert.NotNull(firstTimeSlotSchedule);
-        firstTimeSlotSchedule.StartAt = firstTimeSlotSchedule.StartAt.AddMinutes(15);
+        var slotId = TestCommonArea.Slots.First().Id;
+        var bookingSlotSlotsResult = await Client.GetAsync($"/CommonAreas/{TestCommonArea.Id}/slot/{slotId}/bookingSlots");
+        var bookingSlots = await bookingSlotSlotsResult.Content.ReadFromJsonAsync<List<BookingSlot>>();
+        var firstBookingSlot = bookingSlots?.First();
+        Assert.NotNull(firstBookingSlot);
+        var firstTimeSlot = firstBookingSlot.Slots.First();
+        Assert.NotNull(firstTimeSlot);
+        firstTimeSlot.StartAt = firstTimeSlot.StartAt.AddMinutes(15);
         using MultipartFormDataContent newReservationDetails = new()
         {
-            { new StringContent(lastTimeSlot.Date.ToString()), "date" },
-            { new StringContent(firstTimeSlotSchedule.StartAt.ToString()), "startAt" },
-            { new StringContent(TestCommonArea.Id.ToString()), "commonAreaId" }
+            { new StringContent(firstBookingSlot.Date.ToString()), "date" },
+            { new StringContent(firstTimeSlot.StartAt.ToString()), "startAt" },
+            { new StringContent(TestCommonArea.Id.ToString()), "commonAreaId" },
+            { new StringContent(slotId.ToString()), "slotId" }
         };
+
+        // Act
         var result = await Client.PostAsync($"/CommonAreas/{TestCommonArea.Id}/reservation", newReservationDetails);
 
         // Assert

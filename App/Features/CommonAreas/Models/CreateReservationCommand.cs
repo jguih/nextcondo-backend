@@ -10,5 +10,5 @@ public class CreateReservationCommand
     [Required]
     public TimeOnly StartAt { get; set; }
     [Required]
-    public int SlotId { get; set; }
+    public required int SlotId { get; set; }
 }

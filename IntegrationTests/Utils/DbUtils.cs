@@ -97,7 +97,11 @@ public static class DbUtils
                     new RespawnerOptions
                     {
                         SchemasToInclude = ["public"],
-                        TablesToIgnore = ["Roles", "__EFMigrationsHistory", "OccurrenceTypes", "CommonAreaTypes"],
+                        TablesToIgnore = [
+                            "Roles",
+                            "__EFMigrationsHistory",
+                            "OccurrenceTypes",
+                            "CommonAreaTypes"],
                         DbAdapter = DbAdapter.Postgres
                     }
                 );

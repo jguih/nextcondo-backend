@@ -13,8 +13,6 @@ public class CommonAreaDetails : CreateCommonAreaCommand
 
 public class FakeCommonAreasFactory
 {
-    private static Faker faker { get; } = new Faker();
-
     private static readonly Faker<CommonAreaDTO> CommonAreaDTOFaker = new Faker<CommonAreaDTO>()
         .RuleFor(o => o.Id, f => f.Random.Int())
         .RuleFor(o => o.Type,
@@ -44,19 +42,14 @@ public class FakeCommonAreasFactory
         .RuleFor(o => o.EndTime, TimeOnly.Parse("22:00"))
         .RuleFor(o => o.TimeInterval, TimeOnly.Parse("01:00"));
 
-    private static readonly Faker<CreateCommonAreaCommand.CreateCommonAreaCommandSlot>
-        CommonAreaDetailsSlotFaker =
-            new Faker<CreateCommonAreaCommand.CreateCommonAreaCommandSlot>()
-            .RuleFor(o => o.Name_EN, f => f.Lorem.Sentence().ClampLength(100, 255))
-            .RuleFor(o => o.Name_PTBR, f => f.Lorem.Sentence().ClampLength(100, 255));
+    private static readonly Faker<CreateCommonAreaCommandSlot> CommonAreaDetailsSlotFaker = new Faker<CreateCommonAreaCommandSlot>()
+        .RuleFor(o => o.Name_EN, f => f.Lorem.Sentence().ClampLength(100, 255))
+        .RuleFor(o => o.Name_PTBR, f => f.Lorem.Sentence().ClampLength(100, 255));
 
-
-    private static List<CreateCommonAreaCommand.CreateCommonAreaCommandSlot> GetSlots()
-    {
-        List<CreateCommonAreaCommand.CreateCommonAreaCommandSlot> list = [];
-        list.AddRange(CommonAreaDetailsSlotFaker.GenerateBetween(1, 4));
-        return list;
-    }
+    private static readonly Faker<CommonAreaSlot> CommonAreaSlotFaker = new Faker<CommonAreaSlot>()
+        .RuleFor(o => o.Id, f => f.Random.Int())
+        .RuleFor(o => o.Name_EN, f => f.Lorem.Sentence().ClampLength(100, 255))
+        .RuleFor(o => o.Name_PTBR, f => f.Lorem.Sentence().ClampLength(100, 255));
 
     public static CommonAreaDTO GetDto()
     {
@@ -66,12 +59,18 @@ public class FakeCommonAreasFactory
     public static CommonAreaDetails GetDetails()
     {
         var details = CommonAreaDetailsFaker.Generate();
-        details.Slots = GetSlots();
+        List<CreateCommonAreaCommandSlot> slots = [];
+        slots.AddRange(CommonAreaDetailsSlotFaker.GenerateBetween(1, 4));
+        details.Slots = slots;
         return details;
     }
 
     public static CommonArea Get()
     {
-        return CommonAreaFaker.Generate();
+        var commonArea = CommonAreaFaker.Generate();
+        List<CommonAreaSlot> slots = [];
+        slots.AddRange(CommonAreaSlotFaker.GenerateBetween(1, 4));
+        commonArea.Slots = slots;
+        return commonArea;
     }
 }
