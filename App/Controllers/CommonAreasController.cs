@@ -41,6 +41,15 @@ public class CommonAreasController : ControllerBase
     public async Task<IActionResult> AddAsync([FromForm] CreateCommonAreaCommand data)
     {
         var (result, commonAreaId) = await _commonAreasService.AddAsync(data);
+        if (result == CreateCommonAreaResult.NoSlotsProvided)
+        {
+            return Problem(
+                title: "Empty slots array",
+                detail: "Slots array can not be empty",
+                statusCode: StatusCodes.Status400BadRequest,
+                type: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400"
+            );
+        }
         if (result == CreateCommonAreaResult.CommonAreaTypeNotFound)
         {
             return Problem(
@@ -50,7 +59,14 @@ public class CommonAreasController : ControllerBase
                 type: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404"
             );
         }
-        return CreatedAtAction(nameof(GetById), new { Id = commonAreaId }, new { Id = commonAreaId });
+        if (result == CreateCommonAreaResult.Created)
+        {
+            return CreatedAtAction(
+                nameof(GetById),
+                new { Id = commonAreaId },
+                new { Id = commonAreaId });
+        }
+        return BadRequest();
     }
 
     [HttpGet]
@@ -92,6 +108,15 @@ public class CommonAreasController : ControllerBase
                 type: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404"
             );
         }
+        if (result == CreateReservationResult.SlotNotFound)
+        {
+            return Problem(
+                title: "Slot not found",
+                detail: "Slot not found",
+                statusCode: StatusCodes.Status404NotFound,
+                type: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404"
+            );
+        }
         if (result == CreateReservationResult.InvalidTimeSlot)
         {
             return Problem(
@@ -110,7 +135,11 @@ public class CommonAreasController : ControllerBase
                 type: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400"
             );
         }
-        return Ok();
+        if (result == CreateReservationResult.Created)
+        {
+            return Ok();
+        }
+        return BadRequest();
     }
 
     [HttpGet("{Id}")]
@@ -140,7 +169,7 @@ public class CommonAreasController : ControllerBase
         return Ok(commonArea);
     }
 
-    [HttpGet("{Id}/timeSlots")]
+    [HttpGet("{Id}/slot/{SlotId}/bookingSlots")]
     [ProducesResponseType(
         typeof(List<BookingSlot>),
         StatusCodes.Status200OK,
@@ -152,10 +181,10 @@ public class CommonAreasController : ControllerBase
     [SwaggerOperation(
         summary: "Returns all time slots for common area",
         description: "Returns time slots for the next 7 days for a current condominium's common area with specified Id")]
-    public async Task<IActionResult> GetTimeSlotsAsync(int Id)
+    public async Task<IActionResult> GetBookingSlotsAsync(int Id, int SlotId)
     {
-        var timeSlots = await _commonAreasService.GetBookingSlotsAsync(Id);
-        if (timeSlots is null)
+        var (result, timeSlots) = await _commonAreasService.GetBookingSlotsAsync(Id, SlotId);
+        if (result == GetBookingSlotsResult.CommonAreaNotFound)
         {
             return Problem(
                 title: "Common area not found",
@@ -164,6 +193,19 @@ public class CommonAreasController : ControllerBase
                 type: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404"
             );
         }
-        return Ok(timeSlots);
+        if (result == GetBookingSlotsResult.SlotNotFound)
+        {
+            return Problem(
+               title: "Slot not found",
+               detail: "Slot not found",
+               statusCode: StatusCodes.Status404NotFound,
+               type: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404"
+           );
+        }
+        if (result == GetBookingSlotsResult.Ok)
+        {
+            return Ok(timeSlots);
+        }
+        return BadRequest();
     }
 }

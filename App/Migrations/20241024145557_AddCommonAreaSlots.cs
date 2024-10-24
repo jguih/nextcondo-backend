@@ -12,6 +12,13 @@ namespace NextCondoApi.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.AddColumn<int>(
+                name: "SlotId",
+                table: "CommonAreaReservations",
+                type: "integer",
+                nullable: false,
+                defaultValue: 0);
+
             migrationBuilder.CreateTable(
                 name: "CommonAreaSlots",
                 columns: table => new
@@ -36,16 +43,41 @@ namespace NextCondoApi.Migrations
                 });
 
             migrationBuilder.CreateIndex(
+                name: "IX_CommonAreaReservations_SlotId",
+                table: "CommonAreaReservations",
+                column: "SlotId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_CommonAreaSlots_CommonAreaId",
                 table: "CommonAreaSlots",
                 column: "CommonAreaId");
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_CommonAreaReservations_CommonAreaSlots_SlotId",
+                table: "CommonAreaReservations",
+                column: "SlotId",
+                principalTable: "CommonAreaSlots",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.Cascade);
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropForeignKey(
+                name: "FK_CommonAreaReservations_CommonAreaSlots_SlotId",
+                table: "CommonAreaReservations");
+
             migrationBuilder.DropTable(
                 name: "CommonAreaSlots");
+
+            migrationBuilder.DropIndex(
+                name: "IX_CommonAreaReservations_SlotId",
+                table: "CommonAreaReservations");
+
+            migrationBuilder.DropColumn(
+                name: "SlotId",
+                table: "CommonAreaReservations");
         }
     }
 }

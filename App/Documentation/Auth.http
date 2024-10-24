@@ -1,0 +1,38 @@
+
+### Create Alan Wake user
+POST {{host}}/Auth/register
+Accept: {{accept}}
+Content-Type: multipart/form-data; boundary=BoundaryString
+
+--BoundaryString
+Content-Disposition: form-data; name="fullName"
+
+Alan Wake
+--BoundaryString
+Content-Disposition: form-data; name="email"
+
+alan@wakemail.com
+--BoundaryString
+Content-Disposition: form-data; name="password"
+
+!@$!@qweq!@#1
+--BoundaryString--
+
+### Login as Alan Wake
+POST {{host}}/Auth/login
+Accept: {{accept}}
+Content-Type: multipart/form-data; boundary=BoundaryString
+
+--BoundaryString
+Content-Disposition: form-data; name="email"
+
+alan@wakemail.com
+--BoundaryString
+Content-Disposition: form-data; name="password"
+
+!@$!@qweq!@#1
+--BoundaryString--
+
+### Get me
+GET {{host}}/Users/me
+Accept: {{accept}}

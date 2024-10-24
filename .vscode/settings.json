@@ -1,0 +1,17 @@
+{
+  "rest-client.environmentVariables": {
+    "$shared": {},
+    "local": {
+      "host": "http://localhost:8080",
+      "accept": "application/json, application/problem+json"
+    },
+    "development": {
+      "host": "https://nextcondo-dev.home.arpa/api",
+      "accept": "application/json, application/problem+json"
+    },
+    "production": {
+      "host": "https://nextcondo.home.arpa/api",
+      "accept": "application/json, application/problem+json"
+    }
+  }
+}

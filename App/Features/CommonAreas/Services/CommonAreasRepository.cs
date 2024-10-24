@@ -31,6 +31,7 @@ public class CommonAreasRepository : GenericRepository<CommonArea>, ICommonAreas
                         && (!hasCondominiumId || commonArea.CondominiumId == condominiumId)
                     select commonArea;
         return await query
+            .Include(ca => ca.Slots)
             .AsNoTracking()
             .FirstOrDefaultAsync();
     }
@@ -41,6 +42,7 @@ public class CommonAreasRepository : GenericRepository<CommonArea>, ICommonAreas
         var hasId = id != null;
         var query = from commonArea in entities
                     let type = commonArea.Type
+                    let slots = commonArea.Slots
                     where (!hasId || commonArea.Id == id)
                         && (!hasCondominiumId || commonArea.CondominiumId == condominiumId)
                     select new CommonAreaDTO()
@@ -54,7 +56,14 @@ public class CommonAreasRepository : GenericRepository<CommonArea>, ICommonAreas
                         },
                         StartTime = commonArea.StartTime,
                         EndTime = commonArea.EndTime,
-                        TimeInterval = commonArea.TimeInterval
+                        TimeInterval = commonArea.TimeInterval,
+                        Slots = from slot in slots
+                                select new CommonAreaDTO.CommonAreaSlotDTO()
+                                {
+                                    Id = slot.Id,
+                                    Name_EN = slot.Name_EN,
+                                    Name_PTBR = slot.Name_PTBR
+                                }
                     };
         return await query
             .AsNoTracking()
@@ -67,6 +76,7 @@ public class CommonAreasRepository : GenericRepository<CommonArea>, ICommonAreas
         var hasId = id != null;
         var query = from commonArea in entities
                     let type = commonArea.Type
+                    let slots = commonArea.Slots
                     where (!hasId || commonArea.Id == id)
                         && (!hasCondominiumId || commonArea.CondominiumId == condominiumId)
                     select new CommonAreaDTO()
@@ -80,7 +90,14 @@ public class CommonAreasRepository : GenericRepository<CommonArea>, ICommonAreas
                         },
                         StartTime = commonArea.StartTime,
                         EndTime = commonArea.EndTime,
-                        TimeInterval = commonArea.TimeInterval
+                        TimeInterval = commonArea.TimeInterval,
+                        Slots = from slot in slots
+                                select new CommonAreaDTO.CommonAreaSlotDTO()
+                                {
+                                    Id = slot.Id,
+                                    Name_EN = slot.Name_EN,
+                                    Name_PTBR = slot.Name_PTBR
+                                }
                     };
         return await query
             .AsNoTracking()

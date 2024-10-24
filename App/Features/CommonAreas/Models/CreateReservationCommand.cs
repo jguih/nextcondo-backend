@@ -9,4 +9,6 @@ public class CreateReservationCommand
     public DateOnly Date { get; set; }
     [Required]
     public TimeOnly StartAt { get; set; }
+    [Required]
+    public int SlotId { get; set; }
 }

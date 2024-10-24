@@ -6,7 +6,7 @@ namespace NextCondoApi.Features.CommonAreasFeature.Services;
 
 public interface IBookingSlotService
 {
-    public Task<BookingSlot> GetBookingSlotAsync(CommonArea commonArea, DateOnly date);
+    public Task<BookingSlot> GetBookingSlotAsync(CommonArea commonArea, DateOnly date, int slotId);
 }
 
 public class BookingSlotService : IBookingSlotService
@@ -24,9 +24,9 @@ public class BookingSlotService : IBookingSlotService
         return startAt.CompareTo(commonAreaEndTime) < 0 && index != MAX_TIME_SLOTS;
     }
 
-    public async Task<BookingSlot> GetBookingSlotAsync(CommonArea commonArea, DateOnly date)
+    public async Task<BookingSlot> GetBookingSlotAsync(CommonArea commonArea, DateOnly date, int slotId)
     {
-        var reservations = await _commonAreaReservationsRepository.GetAsync(commonArea.Id, date);
+        var reservations = await _commonAreaReservationsRepository.GetAsync(commonArea.Id, date, slotId);
 
         BookingSlot bookingSlot = new()
         {

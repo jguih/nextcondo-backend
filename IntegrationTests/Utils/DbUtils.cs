@@ -76,7 +76,8 @@ public static class DbUtils
             CondominiumId = data.CondominiumId,
             StartTime = data.StartTime,
             EndTime = data.EndTime,
-            TimeInterval = data.TimeInterval
+            TimeInterval = data.TimeInterval,
+            Slots = data.GetSlots()
         };
         await db.CommonAreas.AddAsync(newCommonArea);
         await db.SaveChangesAsync();

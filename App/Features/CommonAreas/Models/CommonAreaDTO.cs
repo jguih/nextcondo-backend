@@ -9,9 +9,17 @@ public class CommonAreaDTO
         public required string Name_PTBR { get; set; }
     }
 
+    public class CommonAreaSlotDTO
+    {
+        public int Id { get; set; }
+        public required string Name_EN { get; set; }
+        public required string Name_PTBR { get; set; }
+    }
+
     public int Id { get; set; }
     public required CommonAreaTypeDTO Type { get; set; }
     public TimeOnly StartTime { get; set; }
     public TimeOnly EndTime { get; set; }
     public TimeOnly TimeInterval { get; set; }
+    public IEnumerable<CommonAreaSlotDTO> Slots { get; set; } = [];
 }

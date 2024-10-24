@@ -1,0 +1,7 @@
+### Get status
+GET {{host}}/Public/status
+Accept: {{accept}}
+
+### Get public URL
+GET {{host}}/Public/publicUrl
+Accept: {{accept}}

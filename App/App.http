@@ -1,6 +1,0 @@
-@NextCondoAppHostAddress = http://localhost:5294
-
-GET {{NextCondoAppHostAddress}}/weatherforecast/
-Accept: application/json
-
-###

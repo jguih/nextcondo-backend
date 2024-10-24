@@ -77,6 +77,9 @@ namespace NextCondoApi.Migrations
                     b.Property<DateOnly>("Date")
                         .HasColumnType("date");
 
+                    b.Property<int>("SlotId")
+                        .HasColumnType("integer");
+
                     b.Property<TimeOnly>("StartAt")
                         .HasColumnType("time without time zone");
 
@@ -89,6 +92,8 @@ namespace NextCondoApi.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CommonAreaId");
+
+                    b.HasIndex("SlotId");
 
                     b.HasIndex("UserId");
 
@@ -574,6 +579,12 @@ namespace NextCondoApi.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("NextCondoApi.Entity.CommonAreaSlot", "Slot")
+                        .WithMany()
+                        .HasForeignKey("SlotId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("NextCondoApi.Entity.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
@@ -581,6 +592,8 @@ namespace NextCondoApi.Migrations
                         .IsRequired();
 
                     b.Navigation("CommonArea");
+
+                    b.Navigation("Slot");
 
                     b.Navigation("User");
                 });

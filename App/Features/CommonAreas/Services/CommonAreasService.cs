@@ -8,7 +8,7 @@ namespace NextCondoApi.Features.CommonAreasFeature.Services;
 public interface ICommonAreasService
 {
     public Task<(CreateCommonAreaResult result, int? commonAreaId)> AddAsync(CreateCommonAreaCommand data);
-    public Task<List<BookingSlot>?> GetBookingSlotsAsync(int Id);
+    public Task<(GetBookingSlotsResult result, List<BookingSlot>? slotList)> GetBookingSlotsAsync(int Id, int slotId);
     public Task<CommonAreaDTO?> GetDtoAsync(int? Id);
     public Task<List<CommonAreaDTO>> GetDtoListAsync();
     public Task<(CreateReservationResult result, int? reservationId)> CreateReservationAsync(int commonAreaId, CreateReservationCommand data);
@@ -20,43 +20,50 @@ public class CommonAreasService : ICommonAreasService
     private readonly ICurrentUserContext _currentUserContext;
     private readonly ICommonAreaReservationsRepository _commonAreaReservationsRepository;
     private readonly ICommonAreaTypesRepository _commonAreaTypesRepository;
-    private readonly IBookingSlotService _timeSlotService;
+    private readonly IBookingSlotService _bookingSlotService;
 
     public CommonAreasService(
         ICommonAreasRepository commonAreasRepository,
         ICurrentUserContext currentUserContext,
         ICommonAreaReservationsRepository commonAreaReservationsRepository,
         ICommonAreaTypesRepository commonAreaTypesRepository,
-        IBookingSlotService timeSlotService)
+        IBookingSlotService bookingSlotService)
     {
         _commonAreasRepository = commonAreasRepository;
         _currentUserContext = currentUserContext;
         _commonAreaReservationsRepository = commonAreaReservationsRepository;
         _commonAreaTypesRepository = commonAreaTypesRepository;
-        _timeSlotService = timeSlotService;
+        _bookingSlotService = bookingSlotService;
     }
 
     public async Task<(CreateCommonAreaResult result, int? commonAreaId)> AddAsync(CreateCommonAreaCommand data)
     {
-        var currentCondoId = await _currentUserContext.GetCurrentCondominiumIdAsync();
+        if (data.Slots.Count == 0)
+        {
+            return (CreateCommonAreaResult.NoSlotsProvided, null);
+        }
         var typeExists = await _commonAreaTypesRepository.Exists(data.TypeId);
         if (!typeExists)
         {
             return (CreateCommonAreaResult.CommonAreaTypeNotFound, null);
         }
+        var currentCondoId = await _currentUserContext.GetCurrentCondominiumIdAsync();
         CommonArea newCommonArea = new()
         {
             TypeId = data.TypeId,
             CondominiumId = currentCondoId,
             StartTime = data.StartTime,
             EndTime = data.EndTime,
-            TimeInterval = data.TimeInterval
+            TimeInterval = data.TimeInterval,
+            Slots = data.GetSlots(),
         };
         await _commonAreasRepository.AddAsync(newCommonArea);
         return (CreateCommonAreaResult.Created, newCommonArea.Id);
     }
 
-    public async Task<(CreateReservationResult result, int? reservationId)> CreateReservationAsync(int commonAreaId, CreateReservationCommand data)
+    public async Task<(CreateReservationResult result, int? reservationId)> CreateReservationAsync(
+        int commonAreaId,
+        CreateReservationCommand data)
     {
         var identity = _currentUserContext.GetIdentity();
         var currentCondoId = await _currentUserContext.GetCurrentCondominiumIdAsync();
@@ -70,15 +77,24 @@ public class CommonAreasService : ICommonAreasService
             return (CreateReservationResult.CommonAreaNotFound, null);
         }
 
-        var timeSlot = await _timeSlotService.GetBookingSlotAsync(commonArea, data.Date);
-        var existingSlot = timeSlot.Slots.Find(slot => slot.StartAt.CompareTo(data.StartAt) == 0);
+        var existingSlot = commonArea.Slots
+            .ToList()
+            .Find(slot => slot.Id.Equals(data.SlotId));
 
         if (existingSlot is null)
+        {
+            return (CreateReservationResult.SlotNotFound, null);
+        }
+
+        var bookingSlot = await _bookingSlotService.GetBookingSlotAsync(commonArea, data.Date, data.SlotId);
+        var existingBookingSlot = bookingSlot.Slots.Find(slot => slot.StartAt.CompareTo(data.StartAt) == 0);
+
+        if (existingBookingSlot is null)
         {
             return (CreateReservationResult.InvalidTimeSlot, null);
         }
 
-        if (!existingSlot.Available)
+        if (!existingBookingSlot.Available)
         {
             return (CreateReservationResult.UnavailableTimeSlot, null);
         }
@@ -88,7 +104,8 @@ public class CommonAreasService : ICommonAreasService
             UserId = identity,
             CommonAreaId = commonArea.Id,
             Date = data.Date,
-            StartAt = data.StartAt
+            StartAt = data.StartAt,
+            SlotId = existingSlot.Id,
         };
 
         await _commonAreaReservationsRepository.AddAsync(newReservation);
@@ -110,7 +127,8 @@ public class CommonAreasService : ICommonAreasService
         return dtoList;
     }
 
-    public async Task<List<BookingSlot>?> GetBookingSlotsAsync(int Id)
+    public async Task<(GetBookingSlotsResult result, List<BookingSlot>? slotList)> GetBookingSlotsAsync(
+        int Id, int slotId)
     {
         var currentCondoId = await _currentUserContext.GetCurrentCondominiumIdAsync();
         var commonArea = await _commonAreasRepository
@@ -120,7 +138,16 @@ public class CommonAreasService : ICommonAreasService
 
         if (commonArea is null)
         {
-            return null;
+            return (GetBookingSlotsResult.CommonAreaNotFound, null);
+        }
+
+        var existingSlot = commonArea.Slots
+            .ToList()
+            .Find(slot => slot.Id.Equals(slotId));
+
+        if (existingSlot is null)
+        {
+            return (GetBookingSlotsResult.SlotNotFound, null);
         }
 
         int duration = 7;
@@ -131,17 +158,18 @@ public class CommonAreasService : ICommonAreasService
         {
             var now = utcNow.AddDays(i);
             var date = new DateOnly(now.Date.Year, now.Date.Month, now.Date.Day);
-            var timeSlot = await _timeSlotService.GetBookingSlotAsync(commonArea, date);
+            var timeSlot = await _bookingSlotService.GetBookingSlotAsync(commonArea, date, slotId);
             bookingSlotList.Add(timeSlot);
         }
 
-        return bookingSlotList;
+        return (GetBookingSlotsResult.Ok, bookingSlotList);
     }
 }
 
 public enum CreateReservationResult
 {
     CommonAreaNotFound,
+    SlotNotFound,
     InvalidTimeSlot,
     UnavailableTimeSlot,
     Created,
@@ -150,5 +178,13 @@ public enum CreateReservationResult
 public enum CreateCommonAreaResult
 {
     CommonAreaTypeNotFound,
+    NoSlotsProvided,
     Created,
+}
+
+public enum GetBookingSlotsResult
+{
+    CommonAreaNotFound,
+    SlotNotFound,
+    Ok
 }

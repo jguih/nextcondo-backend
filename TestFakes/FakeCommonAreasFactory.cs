@@ -13,6 +13,8 @@ public class CommonAreaDetails : CreateCommonAreaCommand
 
 public class FakeCommonAreasFactory
 {
+    private static Faker faker { get; } = new Faker();
+
     private static readonly Faker<CommonAreaDTO> CommonAreaDTOFaker = new Faker<CommonAreaDTO>()
         .RuleFor(o => o.Id, f => f.Random.Int())
         .RuleFor(o => o.Type,
@@ -42,6 +44,20 @@ public class FakeCommonAreasFactory
         .RuleFor(o => o.EndTime, TimeOnly.Parse("22:00"))
         .RuleFor(o => o.TimeInterval, TimeOnly.Parse("01:00"));
 
+    private static readonly Faker<CreateCommonAreaCommand.CreateCommonAreaCommandSlot>
+        CommonAreaDetailsSlotFaker =
+            new Faker<CreateCommonAreaCommand.CreateCommonAreaCommandSlot>()
+            .RuleFor(o => o.Name_EN, f => f.Lorem.Sentence().ClampLength(100, 255))
+            .RuleFor(o => o.Name_PTBR, f => f.Lorem.Sentence().ClampLength(100, 255));
+
+
+    private static List<CreateCommonAreaCommand.CreateCommonAreaCommandSlot> GetSlots()
+    {
+        List<CreateCommonAreaCommand.CreateCommonAreaCommandSlot> list = [];
+        list.AddRange(CommonAreaDetailsSlotFaker.GenerateBetween(1, 4));
+        return list;
+    }
+
     public static CommonAreaDTO GetDto()
     {
         return CommonAreaDTOFaker.Generate();
@@ -49,7 +65,9 @@ public class FakeCommonAreasFactory
 
     public static CommonAreaDetails GetDetails()
     {
-        return CommonAreaDetailsFaker.Generate();
+        var details = CommonAreaDetailsFaker.Generate();
+        details.Slots = GetSlots();
+        return details;
     }
 
     public static CommonArea Get()

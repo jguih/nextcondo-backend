@@ -1,0 +1,26 @@
+### Creates condominium
+POST {{host}}/Condominium
+Accept: {{accept}}
+Content-Type: multipart/form-data; boundary=BoundaryString
+
+--BoundaryString
+Content-Disposition: form-data; name="name"
+
+The Dark Place
+--BoundaryString
+Content-Disposition: form-data; name="description"
+
+A very dark place
+--BoundaryString
+Content-Disposition: form-data; name="relationshipType"
+
+0
+--BoundaryString--
+
+### Get current
+GET {{host}}/Condominium/mine/current
+Accept: {{accept}}
+
+### Get all mine
+GET {{host}}/Condominium/mine
+Accept: {{accept}}

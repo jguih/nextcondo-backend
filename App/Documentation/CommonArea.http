@@ -1,0 +1,72 @@
+### Create common area
+POST {{host}}/CommonAreas
+Accept: {{accept}}
+Content-Type: multipart/form-data; boundary=BoundaryString
+
+--BoundaryString
+Content-Disposition: form-data; name="typeId"
+
+1
+--BoundaryString
+Content-Disposition: form-data; name="startTime"
+
+05:30:00
+--BoundaryString
+Content-Disposition: form-data; name="endTime"
+
+22:00:00
+--BoundaryString
+Content-Disposition: form-data; name="timeInterval"
+
+01:30:00
+--BoundaryString
+Content-Disposition: form-data; name="slots[0].name_en"
+
+Gym 1
+--BoundaryString
+Content-Disposition: form-data; name="slots[0].name_ptbr"
+
+Academia 1
+--BoundaryString
+Content-Disposition: form-data; name="slots[1].name_en"
+
+Gym 2
+--BoundaryString
+Content-Disposition: form-data; name="slots[1].name_ptbr"
+
+Academia 2
+--BoundaryString--
+
+### Get all common areas
+GET {{host}}/CommonAreas
+Accept: {{accept}}
+
+@Id = 1
+@SlotId = 1
+
+### Get a common area
+GET {{host}}/CommonAreas/{{Id}}
+Accept: {{accept}}
+
+### Get booking slots for a common area's slot
+GET {{host}}/CommonAreas/{{Id}}/slot/{{SlotId}}/bookingSlots
+Accept: {{accept}}
+
+### Make a reservation
+POST {{host}}/CommonAreas/{{Id}}/reservation
+Accept: {{accept}}
+Content-Type: multipart/form-data; boundary=BoundaryString
+
+--BoundaryString
+Content-Disposition: form-data; name="date"
+
+{{$datetime "YYYY-MM-DD"}}
+--BoundaryString
+Content-Disposition: form-data; name="startAt"
+
+10:00:00
+--BoundaryString
+Content-Disposition: form-data; name="slotId"
+
+{{SlotId}}
+--BoundaryString--

@@ -24,6 +24,11 @@ public class CommonAreaReservationEntityTypeConfiguration : IEntityTypeConfigura
             .HasForeignKey(reservation => reservation.CommonAreaId);
 
         builder
+            .HasOne(reservation => reservation.Slot)
+            .WithMany()
+            .HasForeignKey(reservation => reservation.SlotId);
+
+        builder
             .HasOne(reservation => reservation.User)
             .WithMany()
             .HasForeignKey(reservation => reservation.UserId);
