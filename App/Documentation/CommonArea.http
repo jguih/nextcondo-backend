@@ -6,7 +6,7 @@ Content-Type: multipart/form-data; boundary=BoundaryString
 --BoundaryString
 Content-Disposition: form-data; name="typeId"
 
-1
+5
 --BoundaryString
 Content-Disposition: form-data; name="startTime"
 
@@ -14,42 +14,39 @@ Content-Disposition: form-data; name="startTime"
 --BoundaryString
 Content-Disposition: form-data; name="endTime"
 
-22:00:00
+00:00:00
 --BoundaryString
 Content-Disposition: form-data; name="timeInterval"
 
-01:30:00
+00:30:00
 --BoundaryString
 Content-Disposition: form-data; name="slots[0].name_en"
 
-Gym 1
+Playground 1
 --BoundaryString
 Content-Disposition: form-data; name="slots[0].name_ptbr"
 
-Academia 1
---BoundaryString
-Content-Disposition: form-data; name="slots[1].name_en"
-
-Gym 2
---BoundaryString
-Content-Disposition: form-data; name="slots[1].name_ptbr"
-
-Academia 2
+Parque Infantil 1
 --BoundaryString--
 
 ### Get all common areas
 GET {{host}}/CommonAreas
 Accept: {{accept}}
 
-@Id = 1
-@SlotId = 1
+@Id = 3
+@SlotId = 4
+@Today = {{$datetime "YYYY-MM-DD"}}
 
 ### Get a common area
 GET {{host}}/CommonAreas/{{Id}}
 Accept: {{accept}}
 
-### Get booking slots for a common area's slot
+### Get booking slots for the next 7 days
 GET {{host}}/CommonAreas/{{Id}}/slot/{{SlotId}}/bookingSlots
+Accept: {{accept}}
+
+### Get booking slots for a specific date
+GET {{host}}/CommonAreas/{{Id}}/slot/{{SlotId}}/date/{{Today}}/bookingSlots
 Accept: {{accept}}
 
 ### Make a reservation
@@ -60,7 +57,7 @@ Content-Type: multipart/form-data; boundary=BoundaryString
 --BoundaryString
 Content-Disposition: form-data; name="date"
 
-{{$datetime "YYYY-MM-DD"}}
+{{Today}}
 --BoundaryString
 Content-Disposition: form-data; name="startAt"
 

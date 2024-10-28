@@ -9,6 +9,7 @@ public interface ICommonAreasService
 {
     public Task<(CreateCommonAreaResult result, int? commonAreaId)> AddAsync(CreateCommonAreaCommand data);
     public Task<(GetBookingSlotsResult result, List<BookingSlot>? slotList)> GetBookingSlotsAsync(int Id, int slotId);
+    public Task<(GetBookingSlotsResult result, BookingSlot? slotList)> GetBookingSlotAsync(int Id, int slotId, DateOnly date);
     public Task<CommonAreaDTO?> GetDtoAsync(int? Id);
     public Task<List<CommonAreaDTO>> GetDtoListAsync();
     public Task<(CreateReservationResult result, int? reservationId)> CreateReservationAsync(int commonAreaId, CreateReservationCommand data);
@@ -52,9 +53,6 @@ public class CommonAreasService : ICommonAreasService
         {
             TypeId = data.TypeId,
             CondominiumId = currentCondoId,
-            StartTime = data.StartTime,
-            EndTime = data.EndTime,
-            TimeInterval = data.TimeInterval,
             Slots = data.GetSlots(),
         };
         await _commonAreasRepository.AddAsync(newCommonArea);
@@ -163,6 +161,33 @@ public class CommonAreasService : ICommonAreasService
         }
 
         return (GetBookingSlotsResult.Ok, bookingSlotList);
+    }
+
+    public async Task<(GetBookingSlotsResult result, BookingSlot? slotList)> GetBookingSlotAsync(
+        int Id, int slotId, DateOnly date)
+    {
+        var currentCondoId = await _currentUserContext.GetCurrentCondominiumIdAsync();
+        var commonArea = await _commonAreasRepository
+            .GetAsync(
+                id: Id,
+                condominiumId: currentCondoId);
+
+        if (commonArea is null)
+        {
+            return (GetBookingSlotsResult.CommonAreaNotFound, null);
+        }
+
+        var existingSlot = commonArea.Slots
+            .ToList()
+            .Find(slot => slot.Id.Equals(slotId));
+
+        if (existingSlot is null)
+        {
+            return (GetBookingSlotsResult.SlotNotFound, null);
+        }
+
+        var bookingSlot = await _bookingSlotService.GetBookingSlotAsync(commonArea, date, slotId);
+        return (GetBookingSlotsResult.Ok, bookingSlot);
     }
 }
 

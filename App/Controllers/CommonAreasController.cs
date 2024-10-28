@@ -208,4 +208,44 @@ public class CommonAreasController : ControllerBase
         }
         return BadRequest();
     }
+
+    [HttpGet("{Id}/slot/{SlotId}/date/{Date}/bookingSlots")]
+    [ProducesResponseType(
+        typeof(List<BookingSlot>),
+        StatusCodes.Status200OK,
+        MediaTypeNames.Application.Json)]
+    [ProducesResponseType(
+        typeof(ProblemDetails),
+        StatusCodes.Status404NotFound,
+        MediaTypeNames.Application.ProblemJson)]
+    [SwaggerOperation(
+        summary: "Returns all time slots for common area",
+        description: "Returns time slots for the next 7 days for a current condominium's common area with specified Id")]
+    public async Task<IActionResult> GetBookingSlotAsync(int Id, int SlotId, DateOnly Date)
+    {
+        var (result, timeSlot) = await _commonAreasService.GetBookingSlotAsync(Id, SlotId, Date);
+        if (result == GetBookingSlotsResult.CommonAreaNotFound)
+        {
+            return Problem(
+                title: "Common area not found",
+                detail: "Common area not found",
+                statusCode: StatusCodes.Status404NotFound,
+                type: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404"
+            );
+        }
+        if (result == GetBookingSlotsResult.SlotNotFound)
+        {
+            return Problem(
+               title: "Slot not found",
+               detail: "Slot not found",
+               statusCode: StatusCodes.Status404NotFound,
+               type: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404"
+           );
+        }
+        if (result == GetBookingSlotsResult.Ok)
+        {
+            return Ok(timeSlot);
+        }
+        return BadRequest();
+    }
 }

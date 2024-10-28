@@ -21,7 +21,7 @@ public class AuthServiceHelper : IAuthServiceHelper
 
     public async Task SignInAsync(string scheme, ClaimsPrincipal principal)
     {
-        await httpContext.SignInAsync(scheme, principal);
+        await httpContext.SignInAsync(scheme, principal, new AuthenticationProperties() { IsPersistent = true });
     }
 
     public async Task SignOutAsync(string scheme)

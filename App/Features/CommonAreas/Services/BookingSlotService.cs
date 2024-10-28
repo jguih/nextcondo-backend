@@ -27,6 +27,7 @@ public class BookingSlotService : IBookingSlotService
     public async Task<BookingSlot> GetBookingSlotAsync(CommonArea commonArea, DateOnly date, int slotId)
     {
         var reservations = await _commonAreaReservationsRepository.GetAsync(commonArea.Id, date, slotId);
+        TimeOnly utcNow = TimeOnly.FromDateTime(DateTime.UtcNow);
 
         BookingSlot bookingSlot = new()
         {
@@ -39,7 +40,7 @@ public class BookingSlotService : IBookingSlotService
         {
             var existingReservation = reservations
                 .Find(reservation => reservation.StartAt.CompareTo(startAt) == 0);
-            bool isAvailable = existingReservation is null;
+            bool isAvailable = existingReservation is null && startAt.CompareTo(utcNow) > 0;
             TimeSlot slot = new()
             {
                 StartAt = startAt,
