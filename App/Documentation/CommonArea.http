@@ -67,3 +67,6 @@ Content-Disposition: form-data; name="slotId"
 
 {{SlotId}}
 --BoundaryString--
+
+### Get reservations for current user
+GET {{host}}/CommonAreas/reservation

@@ -19,15 +19,29 @@ public class BookingSlotService : IBookingSlotService
         _commonAreaReservationsRepository = commonAreaReservationsRepository;
     }
 
-    private bool ShouldCreateSlot(TimeOnly startAt, TimeOnly commonAreaEndTime, int index)
+    private bool ShouldCreateTimeSlot(TimeOnly startAt, TimeOnly commonAreaEndTime, int index)
     {
         return startAt.CompareTo(commonAreaEndTime) < 0 && index != MAX_TIME_SLOTS;
+    }
+
+    private bool IsTimeSlotAvailable(List<CommonAreaReservation> reservations, TimeOnly startAt, DateOnly date)
+    {
+        TimeOnly timeUtcNow = TimeOnly.FromDateTime(DateTime.UtcNow);
+        DateOnly dateUtcNow = DateOnly.FromDateTime(DateTime.UtcNow);
+        var existingReservation = reservations
+            .Find(reservation => reservation.StartAt.CompareTo(startAt) == 0);
+
+        if (date.CompareTo(dateUtcNow) == 0)
+        {
+            return existingReservation is null && startAt.CompareTo(timeUtcNow) > 0;
+        }
+
+        return existingReservation is null;
     }
 
     public async Task<BookingSlot> GetBookingSlotAsync(CommonArea commonArea, DateOnly date, int slotId)
     {
         var reservations = await _commonAreaReservationsRepository.GetAsync(commonArea.Id, date, slotId);
-        TimeOnly utcNow = TimeOnly.FromDateTime(DateTime.UtcNow);
 
         BookingSlot bookingSlot = new()
         {
@@ -36,15 +50,12 @@ public class BookingSlotService : IBookingSlotService
 
         var startAt = commonArea.StartTime;
         var timeSlotsIndex = 0;
-        while (ShouldCreateSlot(startAt, commonArea.EndTime, timeSlotsIndex))
+        while (ShouldCreateTimeSlot(startAt, commonArea.EndTime, timeSlotsIndex))
         {
-            var existingReservation = reservations
-                .Find(reservation => reservation.StartAt.CompareTo(startAt) == 0);
-            bool isAvailable = existingReservation is null && startAt.CompareTo(utcNow) > 0;
             TimeSlot slot = new()
             {
                 StartAt = startAt,
-                Available = isAvailable,
+                Available = IsTimeSlotAvailable(reservations, startAt, date),
             };
             bookingSlot.Slots.Add(slot);
             startAt = startAt.Add(commonArea.TimeInterval.ToTimeSpan());

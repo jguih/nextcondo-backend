@@ -13,6 +13,7 @@ public interface ICommonAreasService
     public Task<CommonAreaDTO?> GetDtoAsync(int? Id);
     public Task<List<CommonAreaDTO>> GetDtoListAsync();
     public Task<(CreateReservationResult result, int? reservationId)> CreateReservationAsync(int commonAreaId, CreateReservationCommand data);
+    public Task<List<CommonAreaReservationDTO>> GetReservationsAsync();
 }
 
 public class CommonAreasService : ICommonAreasService
@@ -188,6 +189,13 @@ public class CommonAreasService : ICommonAreasService
 
         var bookingSlot = await _bookingSlotService.GetBookingSlotAsync(commonArea, date, slotId);
         return (GetBookingSlotsResult.Ok, bookingSlot);
+    }
+
+    public async Task<List<CommonAreaReservationDTO>> GetReservationsAsync()
+    {
+        var identity = _currentUserContext.GetIdentity();
+        var dtoList = await _commonAreaReservationsRepository.GetDtoListAsync(identity);
+        return dtoList;
     }
 }
 

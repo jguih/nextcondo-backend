@@ -24,7 +24,6 @@ public class CommonAreasController : ControllerBase
         _commonAreasService = commonAreasService;
     }
 
-
     [HttpPost]
     [Consumes(MediaTypeNames.Multipart.FormData)]
     [ProducesResponseType(
@@ -83,12 +82,23 @@ public class CommonAreasController : ControllerBase
         return Ok(list);
     }
 
-    [HttpPost("{Id}/reservation")]
-    [Consumes(MediaTypeNames.Multipart.FormData)]
+    [HttpGet("reservation")]
     [ProducesResponseType(
-        typeof(object),
+        typeof(List<CommonAreaReservationDTO>),
         StatusCodes.Status200OK,
         MediaTypeNames.Application.Json)]
+    [SwaggerOperation(
+        summary: "Returns all reservations for current user",
+        description: "Returns all reservations for current user")]
+    public async Task<IActionResult> GetReservations()
+    {
+        List<CommonAreaReservationDTO> list = await _commonAreasService.GetReservationsAsync();
+        return Ok(list);
+    }
+
+    [HttpPost("{Id}/reservation")]
+    [Consumes(MediaTypeNames.Multipart.FormData)]
+    [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(
         typeof(ProblemDetails),
         StatusCodes.Status404NotFound,
@@ -137,7 +147,7 @@ public class CommonAreasController : ControllerBase
         }
         if (result == CreateReservationResult.Created)
         {
-            return Ok();
+            return CreatedAtAction(nameof(GetReservations), null, null);
         }
         return BadRequest();
     }
