@@ -212,7 +212,7 @@ public class CommonAreaReservationsTests
         var slotId = commonArea.Slots.First().Id;
         var now = DateTime.UtcNow;
         var today = new DateOnly(now.Date.Year, now.Date.Month, now.Date.Day);
-        var reservationTime = TimeOnly.Parse("14:00");
+        var reservationTime = new TimeOnly(now.AddHours(1).Hour, 0);
         _currentUserContextMock
             .Setup(mock => mock.GetIdentity())
             .Returns(userId);
@@ -260,7 +260,7 @@ public class CommonAreaReservationsTests
         var slotId = commonArea.Slots.First().Id;
         var now = DateTime.UtcNow;
         var today = new DateOnly(now.Date.Year, now.Date.Month, now.Date.Day);
-        var reservationTime = TimeOnly.Parse("14:00");
+        var reservationTime = new TimeOnly(now.AddHours(1).Hour, 0);
         _currentUserContextMock
             .Setup(mock => mock.GetIdentity())
             .Returns(userId);
