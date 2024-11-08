@@ -17,7 +17,9 @@ public class CreateCommonAreaCommand
 
     [Required]
     public required int TypeId { get; set; }
-    [Required(AllowEmptyStrings = false)]
+    [Required]
+    public required int TimezoneOffsetMinutes { get; set; }
+    [Required]
     public TimeOnly StartTime { get; set; }
     [Required]
     public TimeOnly EndTime { get; set; }

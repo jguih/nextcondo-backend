@@ -16,20 +16,20 @@ public class FakeCommonAreasFactory
     private static readonly Faker<CommonAreaDTO> CommonAreaDTOFaker = new Faker<CommonAreaDTO>()
         .RuleFor(o => o.Id, f => f.Random.Int())
         .RuleFor(o => o.Type,
-            new CommonAreaDTO.CommonAreaTypeDTO()
+            new CommonAreaTypeDTO()
             {
                 Id = 1,
                 Name_EN = "Gym",
                 Name_PTBR = "Academia"
             })
-        .RuleFor(o => o.StartTime, TimeOnly.Parse("00:00"))
-        .RuleFor(o => o.EndTime, TimeOnly.Parse("22:00"))
+        .RuleFor(o => o.StartTime, TimeOnly.Parse("06:00"))
+        .RuleFor(o => o.EndTime, TimeOnly.Parse("23:00"))
         .RuleFor(o => o.TimeInterval, TimeOnly.Parse("01:00"));
 
     private static readonly Faker<CommonArea> CommonAreaFaker = new Faker<CommonArea>()
         .RuleFor(o => o.Id, f => f.Random.Int())
         .RuleFor(o => o.TypeId, f => f.Random.Int(1, 6))
-        .RuleFor(o => o.StartTime, TimeOnly.Parse("00:00"))
+        .RuleFor(o => o.StartTime, TimeOnly.Parse("05:30"))
         .RuleFor(o => o.EndTime, TimeOnly.Parse("22:00"))
         .RuleFor(o => o.TimeInterval, TimeOnly.Parse("01:00"))
         .RuleFor(o => o.CondominiumId, f => f.Random.Guid())
@@ -38,9 +38,9 @@ public class FakeCommonAreasFactory
 
     private static readonly Faker<CommonAreaDetails> CommonAreaDetailsFaker = new Faker<CommonAreaDetails>()
         .RuleFor(o => o.TypeId, f => f.Random.Int(1, 6))
-        .RuleFor(o => o.StartTime, TimeOnly.Parse("00:00"))
-        .RuleFor(o => o.EndTime, TimeOnly.Parse("22:00"))
-        .RuleFor(o => o.TimeInterval, TimeOnly.Parse("01:00"));
+        .RuleFor(o => o.StartTime, TimeOnly.Parse("05:30"))
+        .RuleFor(o => o.EndTime, TimeOnly.Parse("00:00"))
+        .RuleFor(o => o.TimeInterval, TimeOnly.Parse("01:30"));
 
     private static readonly Faker<CreateCommonAreaCommandSlot> CommonAreaDetailsSlotFaker = new Faker<CreateCommonAreaCommandSlot>()
         .RuleFor(o => o.Name_EN, f => f.Lorem.Sentence().ClampLength(100, 255))

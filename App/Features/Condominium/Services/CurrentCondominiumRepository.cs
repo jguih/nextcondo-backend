@@ -14,6 +14,7 @@ public interface ICurrentCondominiumRepository : IGenericRepository<CurrentCondo
     /// <returns></returns>
     public Task<CondominiumDTO?> GetDtoAsync(Guid? userId = default);
     public Task<Guid?> GetCondominiumIdAsync(Guid? userId = default);
+    public Task<int> DeleteAsync(Guid? userId = default);
 }
 
 public class CurrentCondominiumRepository : GenericRepository<CurrentCondominium>, ICurrentCondominiumRepository
@@ -29,7 +30,6 @@ public class CurrentCondominiumRepository : GenericRepository<CurrentCondominium
     public async Task<CondominiumDTO?> GetDtoAsync(Guid? userId)
     {
         var hasUserId = userId.HasValue && !userId.Value.Equals(Guid.Empty);
-
         var query = from currentCondo in entities
                     where !hasUserId
                         || currentCondo.UserId == userId
@@ -57,18 +57,30 @@ public class CurrentCondominiumRepository : GenericRepository<CurrentCondominium
                                         "Manager",
                                   }
                     };
-        return await query.AsNoTracking().FirstOrDefaultAsync();
+        return await query
+            .AsNoTracking()
+            .FirstOrDefaultAsync();
     }
 
     public async Task<Guid?> GetCondominiumIdAsync(Guid? userId)
     {
         var hasUserId = userId.HasValue && !userId.Value.Equals(Guid.Empty);
-
         var query = from currentCondo in entities
                     where !hasUserId
                         || currentCondo.UserId == userId
                     select currentCondo.CondominiumId;
 
-        return await query.FirstOrDefaultAsync();
+        return await query
+            .FirstOrDefaultAsync();
+    }
+
+    public async Task<int> DeleteAsync(Guid? userId = null)
+    {
+        var hasUserId = userId.HasValue && !userId.Value.Equals(Guid.Empty);
+        var query = from currentCondo in entities
+                    where currentCondo.UserId.Equals(userId)
+                    select currentCondo;
+        return await query
+            .ExecuteDeleteAsync();
     }
 }

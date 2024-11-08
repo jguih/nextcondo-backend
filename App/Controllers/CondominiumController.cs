@@ -62,6 +62,34 @@ public class CondominiumController : ControllerBase
         return NoContent();
     }
 
+    [HttpPost("mine/current/{Id}")]
+    [ProducesResponseType(
+        typeof(CondominiumDTO),
+        StatusCodes.Status200OK,
+        MediaTypeNames.Application.Json)]
+    [ProducesResponseType(
+        typeof(ProblemDetails),
+        StatusCodes.Status404NotFound,
+        MediaTypeNames.Application.ProblemJson)]
+    public async Task<IActionResult> SetMineCurrentAsync(Guid Id)
+    {
+        var (result, current) = await _condominiumService.SetCurrentAsync(Id);
+        if (result == SetCurrentResult.CondominiumNotFound)
+        {
+            return Problem(
+                title: "Condominium not found",
+                detail: "Condominium not found",
+                statusCode: StatusCodes.Status404NotFound,
+                type: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404"
+            );
+        }
+        if (result == SetCurrentResult.Ok)
+        {
+            return Ok(current);
+        }
+        return BadRequest();
+    }
+
     [HttpPost("join")]
     [Consumes(MediaTypeNames.Multipart.FormData)]
     [ProducesResponseType(StatusCodes.Status200OK)]

@@ -1,64 +1,105 @@
 
+using System.Globalization;
 using NextCondoApi.Entity;
 using NextCondoApi.Features.CommonAreasFeature.Models;
+using NextCondoApi.Utils;
 
 namespace NextCondoApi.Features.CommonAreasFeature.Services;
 
 public interface IBookingSlotService
 {
-    public Task<BookingSlot> GetBookingSlotAsync(CommonArea commonArea, DateOnly date, int slotId);
+    public Task<BookingSlot> GetBookingSlotAsync(
+        CommonArea commonArea,
+        DateOnly date,
+        int slotId,
+        int timezoneOffsetMinutes = 0);
 }
 
 public class BookingSlotService : IBookingSlotService
 {
     private readonly ICommonAreaReservationsRepository _commonAreaReservationsRepository;
     private static readonly int MAX_TIME_SLOTS = 50;
+    /// <summary>
+    /// Number of minutes required prior to making a reservation. 
+    /// <para>
+    /// Example: to book the schedule 11:30, the user's local time needs to be 10:59 or earlier with a tolerance of 30 minutes (default).
+    /// </para>
+    /// </summary>
+    private static readonly int RESERVATION_TOLERANCE_MINUTES = 30;
 
     public BookingSlotService(ICommonAreaReservationsRepository commonAreaReservationsRepository)
     {
         _commonAreaReservationsRepository = commonAreaReservationsRepository;
     }
 
-    private bool ShouldCreateTimeSlot(TimeOnly startAt, TimeOnly commonAreaEndTime, int index)
+    private bool ShouldCreateTimeSlot(TimeOnly startAt, TimeOnly endAt, int index)
     {
-        return startAt.CompareTo(commonAreaEndTime) < 0 && index != MAX_TIME_SLOTS;
+        return startAt != TimeOnly.MinValue
+            && TimeZoneHelper.IsEarlierThan(startAt, endAt)
+            && index != MAX_TIME_SLOTS;
     }
 
-    private bool IsTimeSlotAvailable(List<CommonAreaReservation> reservations, TimeOnly startAt, DateOnly date)
+    private async Task<bool> IsTimeSlotAvailable(
+        int commonAreaId,
+        DateOnly date,
+        int slotId,
+        TimeOnly userStartAt,
+        int timezoneOffsetMinutes = 0)
     {
-        TimeOnly timeUtcNow = TimeOnly.FromDateTime(DateTime.UtcNow);
-        DateOnly dateUtcNow = DateOnly.FromDateTime(DateTime.UtcNow);
-        var existingReservation = reservations
-            .Find(reservation => reservation.StartAt.CompareTo(startAt) == 0);
+        DateTime userNow = TimeZoneHelper.GetUserDateTime(timezoneOffsetMinutes);
+        TimeOnly userTimeNow = TimeOnly.FromDateTime(userNow);
+        DateOnly userDateNow = DateOnly.FromDateTime(userNow);
+        var reservations = await _commonAreaReservationsRepository
+            .GetAsync(commonAreaId, date, slotId);
 
-        if (date.CompareTo(dateUtcNow) == 0)
+        var existingReservation = reservations
+            .Find(reservation =>
+            {
+                TimeOnly userReservationStartAt = TimeZoneHelper
+                    .ConvertFromUTCToUserTime(
+                        reservation.StartAt,
+                        timezoneOffsetMinutes);
+                return userReservationStartAt == userStartAt;
+            });
+
+        if (date == userDateNow)
         {
-            return existingReservation is null && startAt.CompareTo(timeUtcNow) > 0;
+            var minBookingTime = userTimeNow.AddMinutes(RESERVATION_TOLERANCE_MINUTES);
+            return existingReservation is null
+                && userStartAt.CompareTo(minBookingTime) > 0;
         }
 
         return existingReservation is null;
     }
 
-    public async Task<BookingSlot> GetBookingSlotAsync(CommonArea commonArea, DateOnly date, int slotId)
+    public async Task<BookingSlot> GetBookingSlotAsync(
+        CommonArea commonArea,
+        DateOnly date,
+        int slotId,
+        int timezoneOffsetMinutes = 0)
     {
-        var reservations = await _commonAreaReservationsRepository.GetAsync(commonArea.Id, date, slotId);
-
+        var userStartAt = TimeZoneHelper.ConvertFromUTCToUserTime(commonArea.StartTime, timezoneOffsetMinutes);
+        var userEndAt = TimeZoneHelper.ConvertFromUTCToUserTime(commonArea.EndTime, timezoneOffsetMinutes);
+        var timeSlotsIndex = 0;
         BookingSlot bookingSlot = new()
         {
             Date = date
         };
 
-        var startAt = commonArea.StartTime;
-        var timeSlotsIndex = 0;
-        while (ShouldCreateTimeSlot(startAt, commonArea.EndTime, timeSlotsIndex))
+        while (ShouldCreateTimeSlot(userStartAt, userEndAt, timeSlotsIndex))
         {
             TimeSlot slot = new()
             {
-                StartAt = startAt,
-                Available = IsTimeSlotAvailable(reservations, startAt, date),
+                StartAt = userStartAt,
+                Available = await IsTimeSlotAvailable(
+                    commonArea.Id,
+                    date,
+                    slotId,
+                    userStartAt,
+                    timezoneOffsetMinutes),
             };
             bookingSlot.Slots.Add(slot);
-            startAt = startAt.Add(commonArea.TimeInterval.ToTimeSpan());
+            userStartAt = userStartAt.Add(commonArea.TimeInterval.ToTimeSpan());
             timeSlotsIndex++;
         }
 

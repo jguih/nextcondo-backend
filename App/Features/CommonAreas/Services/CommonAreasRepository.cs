@@ -9,8 +9,9 @@ namespace NextCondoApi.Features.CommonAreasFeature.Services;
 public interface ICommonAreasRepository : IGenericRepository<CommonArea>
 {
     public Task<CommonAreaDTO?> GetDtoAsync(int? id = null, Guid? condominiumId = null);
-    public Task<List<CommonAreaDTO>> GetDtoListAsync(int? id = null, Guid? condominiumId = null);
+    public Task<List<CommonAreaDTO>> GetDtoListAsync(int? id = null, Guid? condominiumId = null, Guid? userId = null);
     public Task<CommonArea?> GetAsync(int? id = null, Guid? condominiumId = null);
+    public Task<List<int>> GetExistingTypesId(Guid condominiumId);
 }
 
 public class CommonAreasRepository : GenericRepository<CommonArea>, ICommonAreasRepository
@@ -58,7 +59,7 @@ public class CommonAreasRepository : GenericRepository<CommonArea>, ICommonAreas
                         EndTime = commonArea.EndTime,
                         TimeInterval = commonArea.TimeInterval,
                         Slots = from slot in slots
-                                select new CommonAreaDTO.CommonAreaSlotDTO()
+                                select new CommonAreaDTOSlot()
                                 {
                                     Id = slot.Id,
                                     Name_EN = slot.Name_EN,
@@ -70,15 +71,22 @@ public class CommonAreasRepository : GenericRepository<CommonArea>, ICommonAreas
             .FirstOrDefaultAsync();
     }
 
-    public async Task<List<CommonAreaDTO>> GetDtoListAsync(int? id = null, Guid? condominiumId = null)
+    public async Task<List<CommonAreaDTO>> GetDtoListAsync(int? id = null, Guid? condominiumId = null, Guid? userId = null)
     {
         var hasCondominiumId = condominiumId.HasValue && !condominiumId.Value.Equals(Guid.Empty);
         var hasId = id != null;
+        var hasUserId = userId.HasValue && !userId.Value.Equals(Guid.Empty);
         var query = from commonArea in entities
                     let type = commonArea.Type
                     let slots = commonArea.Slots
+                    let condominium = commonArea.Condominium
+                    let condominiumOwnerId = condominium.OwnerId
+                    let condominiumMembers = condominium.Members
                     where (!hasId || commonArea.Id == id)
                         && (!hasCondominiumId || commonArea.CondominiumId == condominiumId)
+                        && (!hasUserId
+                            || condominiumOwnerId.Equals(userId)
+                            || condominiumMembers.Any(m => m.UserId.Equals(userId)))
                     select new CommonAreaDTO()
                     {
                         Id = commonArea.Id,
@@ -92,7 +100,7 @@ public class CommonAreasRepository : GenericRepository<CommonArea>, ICommonAreas
                         EndTime = commonArea.EndTime,
                         TimeInterval = commonArea.TimeInterval,
                         Slots = from slot in slots
-                                select new CommonAreaDTO.CommonAreaSlotDTO()
+                                select new CommonAreaDTOSlot()
                                 {
                                     Id = slot.Id,
                                     Name_EN = slot.Name_EN,
@@ -101,6 +109,16 @@ public class CommonAreasRepository : GenericRepository<CommonArea>, ICommonAreas
                     };
         return await query
             .AsNoTracking()
+            .ToListAsync();
+    }
+
+    public async Task<List<int>> GetExistingTypesId(Guid condominiumId)
+    {
+        var query = from commonArea in entities
+                    let type = commonArea.Type
+                    where commonArea.CondominiumId == condominiumId
+                    select type.Id;
+        return await query
             .ToListAsync();
     }
 }

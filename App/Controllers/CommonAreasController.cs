@@ -49,6 +49,15 @@ public class CommonAreasController : ControllerBase
                 type: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400"
             );
         }
+        if (result == CreateCommonAreaResult.EndTimeEarlierThanStartTimeOrSame)
+        {
+            return Problem(
+                title: "Invalid end time",
+                detail: "End time must be later than start time and not equal to it",
+                statusCode: StatusCodes.Status400BadRequest,
+                type: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400"
+            );
+        }
         if (result == CreateCommonAreaResult.CommonAreaTypeNotFound)
         {
             return Problem(
@@ -56,6 +65,15 @@ public class CommonAreasController : ControllerBase
                 detail: "Common area type not found",
                 statusCode: StatusCodes.Status404NotFound,
                 type: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404"
+            );
+        }
+        if (result == CreateCommonAreaResult.CommonAreaOfTypeAlreadyExists)
+        {
+            return Problem(
+                title: "Common area with specified type already exists",
+                detail: "Common area with specified type already exists",
+                statusCode: StatusCodes.Status400BadRequest,
+                type: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400"
             );
         }
         if (result == CreateCommonAreaResult.Created)
@@ -79,6 +97,20 @@ public class CommonAreasController : ControllerBase
     public async Task<IActionResult> GetAsync()
     {
         List<CommonAreaDTO> list = await _commonAreasService.GetDtoListAsync();
+        return Ok(list);
+    }
+
+    [HttpGet("types")]
+    [ProducesResponseType(
+        typeof(List<CommonAreaTypeDTO>),
+        StatusCodes.Status200OK,
+        MediaTypeNames.Application.Json)]
+    [SwaggerOperation(
+        summary: "Returns all common area types",
+        description: "Returns all common area types")]
+    public async Task<IActionResult> GetTypesAsync()
+    {
+        var list = await _commonAreasService.GetCommonAreaTypesAsync();
         return Ok(list);
     }
 
@@ -191,9 +223,13 @@ public class CommonAreasController : ControllerBase
     [SwaggerOperation(
         summary: "Returns all time slots for common area",
         description: "Returns time slots for the next 7 days for a current condominium's common area with specified Id")]
-    public async Task<IActionResult> GetBookingSlotsAsync(int Id, int SlotId)
+    public async Task<IActionResult> GetBookingSlotsAsync(int Id, int SlotId, int TimezoneOffsetMinutes)
     {
-        var (result, timeSlots) = await _commonAreasService.GetBookingSlotsAsync(Id, SlotId);
+        var (result, timeSlots) = await _commonAreasService
+            .GetBookingSlotsAsync(
+                Id,
+                SlotId,
+                TimezoneOffsetMinutes);
         if (result == GetBookingSlotsResult.CommonAreaNotFound)
         {
             return Problem(
@@ -221,7 +257,7 @@ public class CommonAreasController : ControllerBase
 
     [HttpGet("{Id}/slot/{SlotId}/date/{Date}/bookingSlots")]
     [ProducesResponseType(
-        typeof(List<BookingSlot>),
+        typeof(BookingSlot),
         StatusCodes.Status200OK,
         MediaTypeNames.Application.Json)]
     [ProducesResponseType(
@@ -229,11 +265,15 @@ public class CommonAreasController : ControllerBase
         StatusCodes.Status404NotFound,
         MediaTypeNames.Application.ProblemJson)]
     [SwaggerOperation(
-        summary: "Returns all time slots for common area",
-        description: "Returns time slots for the next 7 days for a current condominium's common area with specified Id")]
-    public async Task<IActionResult> GetBookingSlotAsync(int Id, int SlotId, DateOnly Date)
+        summary: "Returns time slots for a common area",
+        description: "Returns time slots for specified date")]
+    public async Task<IActionResult> GetBookingSlotAsync(
+        int Id,
+        int SlotId,
+        DateOnly Date,
+        int TimezoneOffsetMinutes)
     {
-        var (result, timeSlot) = await _commonAreasService.GetBookingSlotAsync(Id, SlotId, Date);
+        var (result, timeSlot) = await _commonAreasService.GetBookingSlotAsync(Id, SlotId, Date, TimezoneOffsetMinutes);
         if (result == GetBookingSlotsResult.CommonAreaNotFound)
         {
             return Problem(

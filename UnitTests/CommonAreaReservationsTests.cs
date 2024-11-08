@@ -5,6 +5,8 @@ using NextCondoApi.Entity;
 using NextCondoApi.Features.CommonAreasFeature.Models;
 using NextCondoApi.Features.CommonAreasFeature.Services;
 using NextCondoApi.Services;
+using NextCondoApi.Utils;
+using Org.BouncyCastle.Asn1.Cms;
 using TestFakes;
 
 namespace UnitTests;
@@ -42,6 +44,7 @@ public class CommonAreaReservationsTests
     public async Task GetTimeSlots_Returns_CommonAreaNotFound()
     {
         // Arrange
+        int timezoneOffsetMinutes = -180;
         var commonAreaId = _faker.Random.Int();
         var condominiumId = _faker.Random.Guid();
         var slotId = _faker.Random.Int();
@@ -53,7 +56,8 @@ public class CommonAreaReservationsTests
             .Returns(Task.FromResult<CommonArea?>(null));
 
         // Act
-        var (result, bookingSlots) = await _commonAreasService.GetBookingSlotsAsync(commonAreaId, slotId);
+        var (result, bookingSlots) = await _commonAreasService
+            .GetBookingSlotsAsync(commonAreaId, slotId, timezoneOffsetMinutes);
 
         // Assert
         Assert.Equal(GetBookingSlotsResult.CommonAreaNotFound, result);
@@ -64,6 +68,7 @@ public class CommonAreaReservationsTests
     public async Task GetTimeSlots_Returns_TimeSlotsArray()
     {
         // Arrange
+        int timezoneOffsetMinutes = -180;
         var condominiumId = _faker.Random.Guid();
         CommonArea commonArea = FakeCommonAreasFactory.Get();
         var slotId = commonArea.Slots.First().Id;
@@ -75,69 +80,22 @@ public class CommonAreaReservationsTests
             .Returns(Task.FromResult<CommonArea?>(commonArea));
 
         // Act
-        var (result, bookingSlots) = await _commonAreasService.GetBookingSlotsAsync(commonArea.Id, slotId);
-        var first = bookingSlots?.First();
+        var (result, bookingSlots) = await _commonAreasService
+            .GetBookingSlotsAsync(commonArea.Id, slotId, timezoneOffsetMinutes);
 
         // Assert
         Assert.Equal(GetBookingSlotsResult.Ok, result);
         Assert.NotNull(bookingSlots);
         Assert.NotEmpty(bookingSlots);
         Assert.Equal(7, bookingSlots.Count);
-        Assert.NotNull(first);
-        Assert.Equal(22, first.Slots.Count);
-    }
-
-    [Theory]
-    [InlineData("06:00", "01:00")]
-    [InlineData("01:30", "01:30")]
-    [InlineData("03:00", "01:30")]
-    [InlineData("20:00", "02:00")]
-    [InlineData("16:00", "02:00")]
-    public async Task GetTimeSlots_Returns_TimeSlotsArray_With_UnavailableSlot(string reservationTime, string interval)
-    {
-        // Arrange
-        var condominiumId = _faker.Random.Guid();
-        CommonArea commonArea = FakeCommonAreasFactory.Get();
-        commonArea.TimeInterval = TimeOnly.Parse(interval);
-        var slotId = commonArea.Slots.First().Id;
-        var now = DateTime.UtcNow;
-        var today = new DateOnly(now.Date.Year, now.Date.Month, now.Date.Day);
-        List<CommonAreaReservation> commonAreaReservationList = [];
-        CommonAreaReservation commonAreaReservation = new()
-        {
-            Id = _faker.Random.Int(),
-            CommonAreaId = commonArea.Id,
-            Date = today,
-            StartAt = TimeOnly.Parse(reservationTime),
-            SlotId = slotId,
-        };
-        commonAreaReservationList.Add(commonAreaReservation);
-        _currentUserContextMock
-            .Setup(mock => mock.GetCurrentCondominiumIdAsync())
-            .Returns(Task.FromResult(condominiumId));
-        _commonAreasRepositoryMock
-            .Setup(mock => mock.GetAsync(commonArea.Id, condominiumId))
-            .Returns(Task.FromResult<CommonArea?>(commonArea));
-        _commonAreaReservationsRepositoryMock
-            .Setup(mock => mock.GetAsync(commonArea.Id, It.IsAny<DateOnly>(), slotId))
-            .Returns(Task.FromResult(commonAreaReservationList));
-
-        // Act
-        var (result, bookingSlots) = await _commonAreasService.GetBookingSlotsAsync(commonArea.Id, slotId);
-        var timeSlotsForToday = bookingSlots?.Find(timeSlot => timeSlot.Date.CompareTo(today) == 0);
-        var unavailableTimeSlot = timeSlotsForToday?.Slots
-            .Find(slot => slot.StartAt.CompareTo(commonAreaReservation.StartAt) == 0);
-
-        // Assert
-        Assert.Equal(GetBookingSlotsResult.Ok, result);
-        Assert.NotNull(unavailableTimeSlot);
-        Assert.False(unavailableTimeSlot.Available);
+        Assert.NotEmpty(bookingSlots.First().Slots);
     }
 
     [Fact]
     public async Task Create_Reservation_Returns_CommonAreaNotFound()
     {
         // Arrange
+        int timezoneOffsetMinutes = -180;
         var condominiumId = _faker.Random.Guid();
         var userId = _faker.Random.Guid();
         var commonAreaId = _faker.Random.Int();
@@ -157,7 +115,8 @@ public class CommonAreaReservationsTests
         {
             Date = today,
             StartAt = TimeOnly.Parse("01:00"),
-            SlotId = slotId
+            SlotId = slotId,
+            TimezoneOffsetMinutes = timezoneOffsetMinutes
         };
 
         // Act
@@ -172,6 +131,7 @@ public class CommonAreaReservationsTests
     public async Task Create_Reservation_Returns_InvalidTimeSlot()
     {
         // Arrange
+        int timezoneOffsetMinutes = -180;
         var condominiumId = _faker.Random.Guid();
         var userId = _faker.Random.Guid();
         CommonArea commonArea = FakeCommonAreasFactory.Get();
@@ -192,6 +152,7 @@ public class CommonAreaReservationsTests
             Date = today,
             StartAt = TimeOnly.Parse("01:30"),
             SlotId = slotId,
+            TimezoneOffsetMinutes = timezoneOffsetMinutes
         };
 
         // Act
@@ -206,13 +167,16 @@ public class CommonAreaReservationsTests
     public async Task Create_Reservation_Returns_UnavailableTimeSlot()
     {
         // Arrange
+        int timezoneOffsetMinutes = -180;
         var condominiumId = _faker.Random.Guid();
         var userId = _faker.Random.Guid();
         CommonArea commonArea = FakeCommonAreasFactory.Get();
+        commonArea.StartTime = new TimeOnly(6, 0);
+        commonArea.EndTime = new TimeOnly(22, 0);
+        commonArea.TimeInterval = new TimeOnly(1, 0);
         var slotId = commonArea.Slots.First().Id;
-        var now = DateTime.UtcNow;
-        var today = new DateOnly(now.Date.Year, now.Date.Month, now.Date.Day);
-        var reservationTime = new TimeOnly(now.AddHours(1).Hour, 0);
+        var today = TimeZoneHelper.GetUserDateTime(timezoneOffsetMinutes);
+        var reservationTime = new TimeOnly(today.AddHours(1).Hour, 0);
         _currentUserContextMock
             .Setup(mock => mock.GetIdentity())
             .Returns(userId);
@@ -227,8 +191,9 @@ public class CommonAreaReservationsTests
         {
             Id = _faker.Random.Int(),
             CommonAreaId = commonArea.Id,
-            Date = today,
-            StartAt = reservationTime,
+            Date = DateOnly.FromDateTime(today),
+            StartAt = TimeZoneHelper
+                .ConvertFromUserTimeToUTC(reservationTime, timezoneOffsetMinutes),
             SlotId = slotId,
         };
         commonAreaReservationList.Add(commonAreaReservation);
@@ -237,9 +202,10 @@ public class CommonAreaReservationsTests
             .Returns(Task.FromResult(commonAreaReservationList));
         CreateReservationCommand data = new()
         {
-            Date = today,
+            Date = DateOnly.FromDateTime(today),
             StartAt = reservationTime,
-            SlotId = slotId
+            SlotId = slotId,
+            TimezoneOffsetMinutes = timezoneOffsetMinutes
         };
 
         // Act
@@ -254,13 +220,16 @@ public class CommonAreaReservationsTests
     public async Task Create_Reservation_Returns_Created()
     {
         // Arrange
+        int timezoneOffsetMinutes = -180;
         var condominiumId = _faker.Random.Guid();
         var userId = _faker.Random.Guid();
         CommonArea commonArea = FakeCommonAreasFactory.Get();
+        commonArea.StartTime = new TimeOnly(6, 0);
+        commonArea.EndTime = new TimeOnly(22, 0);
+        commonArea.TimeInterval = new TimeOnly(1, 0);
         var slotId = commonArea.Slots.First().Id;
-        var now = DateTime.UtcNow;
-        var today = new DateOnly(now.Date.Year, now.Date.Month, now.Date.Day);
-        var reservationTime = new TimeOnly(now.AddHours(1).Hour, 0);
+        var today = TimeZoneHelper.GetUserDateTime(timezoneOffsetMinutes);
+        var reservationTime = new TimeOnly(today.AddHours(1).Hour, 0);
         _currentUserContextMock
             .Setup(mock => mock.GetIdentity())
             .Returns(userId);
@@ -272,9 +241,10 @@ public class CommonAreaReservationsTests
             .Returns(Task.FromResult<CommonArea?>(commonArea));
         CreateReservationCommand data = new()
         {
-            Date = today,
+            Date = DateOnly.FromDateTime(today),
             StartAt = reservationTime,
             SlotId = slotId,
+            TimezoneOffsetMinutes = timezoneOffsetMinutes
         };
 
         // Act

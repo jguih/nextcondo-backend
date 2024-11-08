@@ -14,6 +14,7 @@ public interface ICondominiumService
     public Task<Guid> AddAsync(CreateCondominiumCommand data);
     public Task<List<CondominiumDTO>> GetMineAsync();
     public Task<int> JoinAsync(JoinCommand data);
+    public Task<(SetCurrentResult result, CondominiumDTO? current)> SetCurrentAsync(Guid condominiumId);
 }
 
 public class CondominiumService : ICondominiumService
@@ -117,4 +118,29 @@ public class CondominiumService : ICondominiumService
 
         return 0;
     }
+
+    public async Task<(SetCurrentResult result, CondominiumDTO? current)> SetCurrentAsync(Guid condominiumId)
+    {
+        var identity = _currentUserContext.GetIdentity();
+        var exists = await _condominiumsRepository.ExistsAsync(condominiumId);
+        if (!exists)
+        {
+            return (SetCurrentResult.CondominiumNotFound, null);
+        }
+        await _currentCondominiumRepository.DeleteAsync(userId: identity);
+        CurrentCondominium newCurrent = new()
+        {
+            CondominiumId = condominiumId,
+            UserId = identity,
+        };
+        await _currentCondominiumRepository.AddAsync(newCurrent);
+        var dto = await _currentCondominiumRepository.GetDtoAsync(identity);
+        return (SetCurrentResult.Ok, dto);
+    }
+}
+
+public enum SetCurrentResult
+{
+    CondominiumNotFound,
+    Ok
 }

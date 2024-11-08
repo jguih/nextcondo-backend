@@ -12,7 +12,7 @@ public interface ICommonAreaReservationsRepository : IGenericRepository<CommonAr
         DateOnly? date = null,
         int? slotId = null);
 
-    public Task<List<CommonAreaReservationDTO>> GetDtoListAsync(Guid? userId = null);
+    public Task<List<CommonAreaReservationDTO>> GetDtoListAsync(Guid? userId = null, Guid? condominiumId = null);
 }
 
 public class CommonAreaReservationsRepository : GenericRepository<CommonAreaReservation>, ICommonAreaReservationsRepository
@@ -42,9 +42,10 @@ public class CommonAreaReservationsRepository : GenericRepository<CommonAreaRese
             .ToListAsync();
     }
 
-    public async Task<List<CommonAreaReservationDTO>> GetDtoListAsync(Guid? userId = null)
+    public async Task<List<CommonAreaReservationDTO>> GetDtoListAsync(Guid? userId = null, Guid? condominiumId = null)
     {
         var hasUserId = userId.HasValue && !userId.Value.Equals(Guid.Empty);
+        var hasCondominiumId = condominiumId.HasValue && !condominiumId.Value.Equals(Guid.Empty);
         var utcNow = DateTime.UtcNow;
         var timeNow = TimeOnly.FromDateTime(utcNow);
         var dateNow = DateOnly.FromDateTime(utcNow);
@@ -68,7 +69,8 @@ public class CommonAreaReservationsRepository : GenericRepository<CommonAreaRese
                         : isConfirmed ? 2
                         : isCompleted ? 3
                         : 4
-                    where !hasUserId || reservation.UserId == userId
+                    where (!hasUserId || reservation.UserId == userId)
+                        && (!hasCondominiumId || commonArea.CondominiumId == condominiumId)
                     orderby priority, reservation.CreatedAt descending
                     select new CommonAreaReservationDTO()
                     {

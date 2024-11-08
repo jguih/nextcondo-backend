@@ -1,3 +1,5 @@
+@TimezoneOffsetMinutes = -180
+
 ### Create common area
 POST {{host}}/CommonAreas
 Accept: {{accept}}
@@ -6,35 +8,39 @@ Content-Type: multipart/form-data; boundary=BoundaryString
 --BoundaryString
 Content-Disposition: form-data; name="typeId"
 
-5
+4
+--BoundaryString
+Content-Disposition: form-data; name="timezoneOffsetMinutes"
+
+{{TimezoneOffsetMinutes}}
 --BoundaryString
 Content-Disposition: form-data; name="startTime"
 
-05:30:00
+05:30
 --BoundaryString
 Content-Disposition: form-data; name="endTime"
 
-00:00:00
+00:00
 --BoundaryString
 Content-Disposition: form-data; name="timeInterval"
 
-00:30:00
+00:30
 --BoundaryString
 Content-Disposition: form-data; name="slots[0].name_en"
 
-Playground 1
+Party Hall 1
 --BoundaryString
 Content-Disposition: form-data; name="slots[0].name_ptbr"
 
-Parque Infantil 1
+Salão de Festas 1
 --BoundaryString--
 
 ### Get all common areas
 GET {{host}}/CommonAreas
 Accept: {{accept}}
 
-@Id = 3
-@SlotId = 4
+@Id = 19
+@SlotId = 22
 @Today = {{$datetime "YYYY-MM-DD"}}
 
 ### Get a common area
@@ -42,11 +48,11 @@ GET {{host}}/CommonAreas/{{Id}}
 Accept: {{accept}}
 
 ### Get booking slots for the next 7 days
-GET {{host}}/CommonAreas/{{Id}}/slot/{{SlotId}}/bookingSlots
+GET {{host}}/CommonAreas/{{Id}}/slot/{{SlotId}}/bookingSlots?timezoneOffsetMinutes={{TimezoneOffsetMinutes}}
 Accept: {{accept}}
 
 ### Get booking slots for a specific date
-GET {{host}}/CommonAreas/{{Id}}/slot/{{SlotId}}/date/{{Today}}/bookingSlots
+GET {{host}}/CommonAreas/{{Id}}/slot/{{SlotId}}/date/{{Today}}/bookingSlots?timezoneOffsetMinutes={{TimezoneOffsetMinutes}}
 Accept: {{accept}}
 
 ### Make a reservation
@@ -61,12 +67,19 @@ Content-Disposition: form-data; name="date"
 --BoundaryString
 Content-Disposition: form-data; name="startAt"
 
-10:00:00
+18:30:00
 --BoundaryString
 Content-Disposition: form-data; name="slotId"
 
 {{SlotId}}
+--BoundaryString
+Content-Disposition: form-data; name="timezoneOffsetMinutes"
+
+{{TimezoneOffsetMinutes}}
 --BoundaryString--
 
 ### Get reservations for current user
 GET {{host}}/CommonAreas/reservation
+
+### Get common area types
+GET {{host}}/CommonAreas/types

@@ -11,4 +11,6 @@ public class CreateReservationCommand
     public TimeOnly StartAt { get; set; }
     [Required]
     public required int SlotId { get; set; }
+    [Required]
+    public required int TimezoneOffsetMinutes { get; set; }
 }

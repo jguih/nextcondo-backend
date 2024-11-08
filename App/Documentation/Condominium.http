@@ -24,3 +24,8 @@ Accept: {{accept}}
 ### Get all mine
 GET {{host}}/Condominium/mine
 Accept: {{accept}}
+
+### Set current condominium
+@condominiumId=94011d70-19d1-46d5-9935-71ec91cc173d
+POST {{host}}/Condominium/mine/current/{{condominiumId}}
+Accept: {{accept}}

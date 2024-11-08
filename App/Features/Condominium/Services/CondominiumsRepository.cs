@@ -9,6 +9,7 @@ public interface ICondominiumsRepository : IGenericRepository<Condominium>
 {
     public Task<List<CondominiumDTO>> GetDtoListAsync(Guid? userId = default);
     public Task<Guid?> GetIdAsync(Guid? userId = default, Guid? id = default);
+    public Task<bool> ExistsAsync(Guid? id = null);
 }
 
 public class CondominiumsRepository : GenericRepository<Condominium>, ICondominiumsRepository
@@ -18,6 +19,15 @@ public class CondominiumsRepository : GenericRepository<Condominium>, ICondomini
         ILogger<CondominiumsRepository> logger)
         : base(context, logger)
     {
+    }
+
+    public async Task<bool> ExistsAsync(Guid? id = null)
+    {
+        var hasId = id.HasValue && !id.Value.Equals(Guid.Empty);
+        var query = from condominium in entities
+                    where !hasId || condominium.Id.Equals(id)
+                    select 1;
+        return await query.AnyAsync();
     }
 
     public async Task<List<CondominiumDTO>> GetDtoListAsync(Guid? userId)

@@ -2,11 +2,11 @@ using System.Net;
 using System.Net.Http.Json;
 using IntegrationTests.Utils;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using NextCondoApi;
 using NextCondoApi.Entity;
 using NextCondoApi.Features.CommonAreasFeature.Models;
+using NextCondoApi.Utils;
 using TestFakes;
 
 namespace IntegrationTests;
@@ -57,13 +57,18 @@ public class CommonAreaReservationsTests : IClassFixture<TestsWebApplicationFact
     public async Task Create_Reservations_Returns_200()
     {
         // Arrange
+        int timezoneOffsetMinutes = -180;
         var slotId = TestCommonArea.Slots.First().Id;
-        DateOnly tomorrow = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(1));
-        var formattedTomorrow = tomorrow.ToString("yyyy-MM-dd");
-        var bookingSlotResult = await Client.GetAsync($"/CommonAreas/{TestCommonArea.Id}/slot/{slotId}/date/{formattedTomorrow}/bookingSlots");
+        DateTime date = TimeZoneHelper
+            .GetUserDateTime(timezoneOffsetMinutes)
+            .AddDays(1);
+        var formattedDate = date.ToString("yyyy-MM-dd");
+        var endpoint = $"/CommonAreas/{TestCommonArea.Id}/slot/{slotId}/date/{formattedDate}/bookingSlots?timezoneOffsetMinutes={timezoneOffsetMinutes}";
+        var bookingSlotResult = await Client.GetAsync(endpoint);
         bookingSlotResult.EnsureSuccessStatusCode();
         var bookingSlot = await bookingSlotResult.Content.ReadFromJsonAsync<BookingSlot>();
         Assert.NotNull(bookingSlot);
+        Assert.NotEmpty(bookingSlot.Slots);
         var firstTimeSlot = bookingSlot.Slots.First();
         Assert.NotNull(firstTimeSlot);
         using MultipartFormDataContent newReservationDetails = new()
@@ -71,7 +76,8 @@ public class CommonAreaReservationsTests : IClassFixture<TestsWebApplicationFact
             { new StringContent(bookingSlot.Date.ToString()), "date" },
             { new StringContent(firstTimeSlot.StartAt.ToString()), "startAt" },
             { new StringContent(TestCommonArea.Id.ToString()), "commonAreaId" },
-            { new StringContent(slotId.ToString()), "slotId" }
+            { new StringContent(slotId.ToString()), "slotId" },
+            { new StringContent(timezoneOffsetMinutes.ToString()), "timezoneOffsetMinutes" }
         };
 
         // Act
@@ -85,10 +91,14 @@ public class CommonAreaReservationsTests : IClassFixture<TestsWebApplicationFact
     public async Task Create_SameReservationTwice_Returns_400()
     {
         // Arrange
+        int timezoneOffsetMinutes = -180;
         var slotId = TestCommonArea.Slots.First().Id;
-        DateOnly tomorrow = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(2));
-        var formattedTomorrow = tomorrow.ToString("yyyy-MM-dd");
-        var bookingSlotResult = await Client.GetAsync($"/CommonAreas/{TestCommonArea.Id}/slot/{slotId}/date/{formattedTomorrow}/bookingSlots");
+        DateTime date = TimeZoneHelper
+            .GetUserDateTime(timezoneOffsetMinutes)
+            .AddDays(2);
+        var formattedDate = date.ToString("yyyy-MM-dd");
+        var endpoint = $"/CommonAreas/{TestCommonArea.Id}/slot/{slotId}/date/{formattedDate}/bookingSlots?timezoneOffsetMinutes={timezoneOffsetMinutes}";
+        var bookingSlotResult = await Client.GetAsync(endpoint);
         bookingSlotResult.EnsureSuccessStatusCode();
         var bookingSlot = await bookingSlotResult.Content.ReadFromJsonAsync<BookingSlot>();
         Assert.NotNull(bookingSlot);
@@ -99,7 +109,8 @@ public class CommonAreaReservationsTests : IClassFixture<TestsWebApplicationFact
             { new StringContent(bookingSlot.Date.ToString()), "date" },
             { new StringContent(firstTimeSlot.StartAt.ToString()), "startAt" },
             { new StringContent(TestCommonArea.Id.ToString()), "commonAreaId" },
-            { new StringContent(slotId.ToString()), "slotId" }
+            { new StringContent(slotId.ToString()), "slotId" },
+            { new StringContent(timezoneOffsetMinutes.ToString()), "timezoneOffsetMinutes" }
         };
 
         // Act
@@ -115,10 +126,14 @@ public class CommonAreaReservationsTests : IClassFixture<TestsWebApplicationFact
     public async Task Create_ReservationWithInvalidSlot_Returns_400()
     {
         // Arrange
+        int timezoneOffsetMinutes = -180;
         var slotId = TestCommonArea.Slots.First().Id;
-        DateOnly tomorrow = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(3));
-        var formattedTomorrow = tomorrow.ToString("yyyy-MM-dd");
-        var bookingSlotResult = await Client.GetAsync($"/CommonAreas/{TestCommonArea.Id}/slot/{slotId}/date/{formattedTomorrow}/bookingSlots");
+        DateTime date = TimeZoneHelper
+            .GetUserDateTime(timezoneOffsetMinutes)
+            .AddDays(3);
+        var formattedDate = date.ToString("yyyy-MM-dd");
+        var endpoint = $"/CommonAreas/{TestCommonArea.Id}/slot/{slotId}/date/{formattedDate}/bookingSlots?timezoneOffsetMinutes={timezoneOffsetMinutes}";
+        var bookingSlotResult = await Client.GetAsync(endpoint);
         bookingSlotResult.EnsureSuccessStatusCode();
         var bookingSlot = await bookingSlotResult.Content.ReadFromJsonAsync<BookingSlot>();
         Assert.NotNull(bookingSlot);
@@ -130,7 +145,8 @@ public class CommonAreaReservationsTests : IClassFixture<TestsWebApplicationFact
             { new StringContent(bookingSlot.Date.ToString()), "date" },
             { new StringContent(firstTimeSlot.StartAt.ToString()), "startAt" },
             { new StringContent(TestCommonArea.Id.ToString()), "commonAreaId" },
-            { new StringContent(slotId.ToString()), "slotId" }
+            { new StringContent(slotId.ToString()), "slotId" },
+            { new StringContent(timezoneOffsetMinutes.ToString()), "timezoneOffsetMinutes" }
         };
 
         // Act
